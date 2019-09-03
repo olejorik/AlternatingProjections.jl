@@ -12,6 +12,9 @@ Module contains types describing different feasible sets and corresponding proje
 """
 module AlternatingProjections
 
+using LinearAlgebra
+using FFTW
+
 """
 # abstract type APMethod
 
@@ -59,6 +62,12 @@ General type, no projection method is specified.
 """
 abstract type ConvexSet <: FeasibleSet end
 
+"""
+    apstep(xᵏ, A::FeasibleSet, B::FeasibleSet, f, b)
+
+Iterate `xᵏ` by ``xᵏ⁺¹  = P_A( b_(P_B(f(xᵏ))))``
+
+"""
 function apstep(xᵏ, A::FeasibleSet, B::FeasibleSet, forward, backward)
     ỹᵏ = forward(xᵏ)
     yᵏ = project(ỹᵏ, B)
@@ -66,13 +75,30 @@ function apstep(xᵏ, A::FeasibleSet, B::FeasibleSet, forward, backward)
     xᵏ⁺¹ = project(x̃ᵏ⁺¹, A)
 end
 
-export APMethod, FeasibleSet, project, ConvexSet
+function apsolve(A, B, ::Type{T}; x⁰=zeros(size(A)), maxit = 20, maxϵ =0.01) where {T<:APMethod}
+    alg = T(A,B)
+    xprev = x⁰
+    i = 0
+    ϵ = Inf
+
+    while i < maxit && ϵ > maxϵ 
+        global x = apstep(xprev, A, B, alg.forward, alg.backward)
+        global ϵ = LinearAlgebra.norm(x - xprev)
+        xprev = x
+    end
+
+    return x
+end
+
+export APMethod, FeasibleSet, project, ConvexSet, apsolve
 
 # Constraints
 include("SupportConstraint.jl")
 include("AmplitudeConstraint.jl")
 
 # algortihms
+include("GerschbergSaxton.jl")
+
 
 
 

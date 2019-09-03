@@ -8,17 +8,11 @@ Requires (in the current realisation) two amplitude constraints or two arrays of
 struct GS <: APMethod #todo should be sets part of this or added to the step! only?
     a::AmplitudeConstraint
     A::AmplitudeConstraint
-    forward
-    backward
 end
-export GS
 
-struct GS
-    a::Array
-    A::Array
-    size(a) == size(A) ? (P, PB) = (plan_fft(A), plan_ifft(A)) : error("Array sizes do not match")
-    GS(a,A) = new(AmplitudeConstraint(a), AmplitudeConstraint(A), x -> P * x, x -> PB * x)
-end
+GS(a::Array, A::Array) = GS(AmplitudeConstraint(a), AmplitudeConstraint(A))
+# GS(a::AmplitudeConstraint, A::AmplitudeConstraint) = GS(a,A)
+
 
 function init!(alg::GS,  x⁰)
     a = alg.a
