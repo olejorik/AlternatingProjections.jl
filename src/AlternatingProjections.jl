@@ -78,15 +78,19 @@ end
 function apsolve(A, B, ::Type{T}; x⁰=zeros(size(A)), maxit = 20, maxϵ =0.01) where {T<:APMethod}
     alg = T(A,B)
     xprev = x⁰
+    x = xprev
     i = 0
     ϵ = Inf
 
     while i < maxit && ϵ > maxϵ 
-        global x = apstep(xprev, A, B, alg.forward, alg.backward)
-        global ϵ = LinearAlgebra.norm(x - xprev)
+        x = apstep(xprev, alg.a, alg.A, alg.forward, alg.backward)
+        ϵ = LinearAlgebra.norm(x - xprev)
         xprev = x
+#         println(ϵ)
+        i += 1
     end
 
+    println("To converge with $ϵ accuracy, it took me $i iterations")
     return x
 end
 

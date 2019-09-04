@@ -13,11 +13,9 @@ struct GS <: APMethod #todo should be sets part of this or added to the step! on
 end
 export GS
 
-struct GS
-    a::Array
-    A::Array
+function GS(a::Array,A::Array)
     size(a) == size(A) ? (P, PB) = (plan_fft(A), plan_ifft(A)) : error("Array sizes do not match")
-    GS(a,A) = new(AmplitudeConstraint(a), AmplitudeConstraint(A), x -> P * x, x -> PB * x)
+    GS(AmplitudeConstraint(a), AmplitudeConstraint(A), x -> P * x, x -> PB * x)
 end
 
 function init!(alg::GS,  x⁰)

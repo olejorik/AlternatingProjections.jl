@@ -1,4 +1,4 @@
-using AlternatingProjections
+using AlternatingProjections, FFTW, LinearAlgebra
 using Test
 
 @testset "AlternatingProjections.jl" begin
@@ -10,4 +10,10 @@ using Test
     y = [2im, -2 + 2im, 6 - 8im]
     @test project(x, S) == [1, 0, 3]
     @test project(y, A) ≈  [im, -1 + im, 3 - 4im]
+
+    y=[randn(ComplexF64,10) ; zeros(10)]
+    Y = fft(y)
+    z = apsolve(abs.(y),abs.(Y), GS, maxit =300,maxϵ = 1e-18)
+    @test abs.(z) ≈ abs.(y)
+    @test abs.(fft(z)) ≈  abs.(Y)
 end
