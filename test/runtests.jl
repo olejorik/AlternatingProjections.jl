@@ -11,9 +11,10 @@ using Test
     @test project(x, S) == [1, 0, 3]
     @test project(y, A) ≈  [im, -1 + im, 3 - 4im]
 
-    y=[randn(ComplexF64,10) ; zeros(10)]
+    y = zeros(ComplexF32,10,10)  # for ComplexF64 increas the number of iterations
+    y[1:5,1:5] = randn(ComplexF32, 5,5)
     Y = fft(y)
-    z = apsolve(abs.(y),abs.(Y), GS, maxit =300,maxϵ = 1e-18)
+    z = apsolve(abs.(y),abs.(Y), GS, maxit =3000,maxϵ = 1e-18)
     @test abs.(z) ≈ abs.(y)
     @test abs.(fft(z)) ≈  abs.(Y)
 end

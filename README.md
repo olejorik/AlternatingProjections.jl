@@ -9,8 +9,8 @@ Several simple alternating projection algorithms are planned for implementation:
 - DRAP
 
 The goals are:
- - learn Julia
- -  try to keep the Julia implementation as close to the pseudocode description as possible
+ - to learn Julia
+ - to try to keep the Julia implementation as close to the pseudocode description as possible
  - to unify several algorithms in one framework.
  
  ## Usage
