@@ -26,6 +26,18 @@ julia>
 """
 abstract type  APMethod end
 
+
+"""
+    AP <: APMethod
+Classical Alternating projection method
+
+Project on one set, than on another, stop after fixed number of iterations or if the desired accuracy is achieved
+"""
+struct AP <: APMethod
+    maxit
+    maxϵ
+end
+
 """
     FeasibleSet
 
@@ -62,6 +74,52 @@ General type, no projection method is specified.
 """
 abstract type ConvexSet <: FeasibleSet end
 
+abstract type Problem end
+
+struct FeasibilityProblem <: Problem
+    A::FeasibleSet
+    B::FeasibleSet
+    forward
+    backward
+end
+
+function solve(p::Problem,x⁰,alg::APMethod)
+    error("Don't know how to solve ", typeof(p), " with method ", typeof(alg))
+end
+
+
+#TODO This is better than below, finish this approach
+function solve(p::FeasibilityProblem, x⁰, alg::AP)
+    A = p.A
+    B = p.B
+    forward = p.forward
+    backward = p.backward
+    maxit = alg.maxit
+    maxϵ =alg.maxϵ
+
+    k = 0
+    xᵏ = x⁰
+    ϵ = Inf
+
+    while k < maxit && ϵ > maxϵ
+        ỹᵏ = forward(xᵏ)
+        yᵏ = project(ỹᵏ, B)
+        x̃ᵏ⁺¹ = backward(yᵏ)
+        xᵏ⁺¹ = project(x̃ᵏ⁺¹, A)
+        ϵ = LinearAlgebra.norm(xᵏ⁺¹ - xᵏ)
+        xᵏ = xᵏ⁺¹
+    #         println(ϵ)
+        k += 1
+    end
+
+    println("To converge with $ϵ accuracy, it took me $k iterations")
+    return xᵏ
+
+end
+
+#TODO this should replace the apsolve function
+function findfeasible(A::FeasibleSet,B::FeasibleSet,forward,backward, alg::APMethod)
+end
 
 
 
@@ -97,7 +155,7 @@ function apsolve(A, B, ::Type{T}; x⁰=zeros(size(A)), maxit = 20, maxϵ =0.01) 
     return x
 end
 
-export APMethod, FeasibleSet, project, ConvexSet, apsolve
+export APMethod, FeasibleSet, project, ConvexSet, apsolve,solve,FeasibilityProblem,AP
 
 # Constraints
 include("SupportConstraint.jl")

@@ -1,9 +1,6 @@
 """
 # type AmplitudeConstraint
 
-- Julia version: 1.1.0
-- Author: Oleg Soloviev
-- Date: 2019-09-01
 
 # Examples
 
@@ -11,13 +8,17 @@
 julia>
 ```
 """
-struct AmplitudeConstraint <: FeasibleSet
+abstract type  AmplitudeConstrainedSet <: FeasibleSet
+end
+export AmplitudeConstrainedSet
+
+struct ConstrainedByAmplitude <: AmplitudeConstrainedSet
     amp::Array{T} where T <: Real #todo nongegative
 end
-export AmplitudeConstraint
+export ConstrainedByAmplitude
 
-function project(x, feasset::AmplitudeConstraint)
+function project(x, feasset::ConstrainedByAmplitude)
     return feasset.amp .* exp.( im * angle.(x))
 end
 
-size(feasset::AmplitudeConstraint) = size(feasset.amp)
+size(feasset::ConstrainedByAmplitude) = size(feasset.amp)
