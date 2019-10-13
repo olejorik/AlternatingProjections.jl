@@ -8,8 +8,7 @@
 julia>
 ```
 """
-abstract type  AmplitudeConstrainedSet <: FeasibleSet
-end
+abstract type  AmplitudeConstrainedSet <: FeasibleSet end
 export AmplitudeConstrainedSet
 
 struct ConstrainedByAmplitude <: AmplitudeConstrainedSet

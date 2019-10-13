@@ -5,26 +5,35 @@
 - Date: 2019-09-01
 =#
 
+
 """
     AlternatingProjections
 
 Module contains types describing different feasible sets and corresponding projection methods on them.
+Being an auto-pedagogical package, it explorers the possibilities, for instance, adding more functionality
+by describing a new type of FeasibleSets in a new separate file and tries not to be perfect.
 """
 module AlternatingProjections
 
 using LinearAlgebra
 using FFTW
 
+
+
 """
 # abstract type APMethod
 
 # Examples
+
+There should be some examples, for sure. At least of the old good Gerchberg-Saxton.
+
 
 ```jldoctest
 julia>
 ```
 """
 abstract type  APMethod end
+
 
 
 """
@@ -38,6 +47,9 @@ struct AP <: APMethod
     maxϵ
 end
 
+
+# Now the sets
+
 """
     FeasibleSet
 
@@ -46,8 +58,23 @@ Abstract type representing a set for feasibility problem.
 abstract type FeasibleSet end
 
 
+
+"""
+    ConvexSet
+
+General type, no projection method is specified.
+
+# Examples
+
+```jldoctest
+```
+"""
+abstract type ConvexSet <: FeasibleSet end
+
 import Base.size # to add size method for FeasibleSet's subtypes
 
+
+# Can you project on any feasible set?
 
 """
     project(x, A)
@@ -58,22 +85,8 @@ function project(x, feasset::FeasibleSet)
     error("Don't know how to project on ", typeof(feasset))
 end
 
-"""
-    ConvexSet
 
-General type, no projection method is specified.
-
-- Julia version:
-- Author: Oleg Soloviev
-- Date: 2019-09-01
-
-# Examples
-
-```jldoctest
-```
-"""
-abstract type ConvexSet <: FeasibleSet end
-
+# Problems :-)
 abstract type Problem end
 
 struct FeasibilityProblem <: Problem
@@ -155,14 +168,14 @@ function apsolve(A, B, ::Type{T}; x⁰=zeros(size(A)), maxit = 20, maxϵ =0.01) 
     return x
 end
 
-export APMethod, FeasibleSet, project, ConvexSet, apsolve,solve,FeasibilityProblem,AP
+export APMethod, FeasibleSet, project, ConvexSet, apsolve,solve, FeasibilityProblem, AP
 
 # Constraints
 include("SupportConstraint.jl")
 include("AmplitudeConstraint.jl")
 
 # algortihms
-include("GerschbergSaxton.jl")
+include("GerchbergSaxton.jl")
 
 
 

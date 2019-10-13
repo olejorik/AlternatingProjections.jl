@@ -1,5 +1,7 @@
+abstract type SupportConstrained <: ConvexSet end
+
 """
-#   SupportConstraint(support)
+#   ConstrainedBySupport(support)
 
 Special type of convex set.
 
@@ -19,8 +21,8 @@ Currently supports only discrete case, with the support defined as a boolean arr
 
 ```jldoctest
 
-julia> S =  SupportConstraint([true, false,true])
-SupportConstraint(Bool[true, false, true])
+julia> S =  ConstrainedBySupport([true, false,true])
+ConstrainedBySupport(Bool[true, false, true])
 
 julia> x = [1, 2, 3]; project(x, S)
 3-element Array{Int64,1}:
@@ -28,7 +30,7 @@ julia> x = [1, 2, 3]; project(x, S)
  0
  3
 
-julia> S = SupportConstraint([x^2 + y^2 <=1  for x in -2:.2:2, y in -2:.2:2]);
+julia> S = ConstrainedBySupport([x^2 + y^2 <=1  for x in -2:.2:2, y in -2:.2:2]);
 julia> x = ones(size(S.support));
 julia> project(x,S)
 21×21 Array{Float64,2}:
@@ -56,11 +58,11 @@ julia> project(x,S)
 
 ```
 """
-struct SupportConstraint<:ConvexSet
+struct ConstrainedBySupport <: SupportConstrained
     support::Array{Bool}
 end
-export SupportConstraint
+export ConstrainedBySupport
 
-function project(x, feasset::SupportConstraint)
+function project(x, feasset::ConstrainedBySupport)
     return feasset.support .* x
 end

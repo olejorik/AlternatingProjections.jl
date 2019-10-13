@@ -16,14 +16,14 @@ The algorithm starts with some initial value ``x^0`` and proceeds by projecting
 ``x^k`` alternatively on ``A`` and ``B``
 :
 ```math
-y^{k} = P_B(x^k).
+y^{k} = P_B(x^k)
 ```
 and
 ```math
 x^{k+1} = P_A(y^k).
 ```
 
-The method was originally proposeby von Neumann in 1949 for ``A`` and ``B`` being
+The method was originally proposed by von Neumann in 1949 for ``A`` and ``B`` being
 linear subspaces, and was later generalised for any number of convex sets ``A_1,
 \ldots,A_N`` as
 ```math
@@ -69,23 +69,24 @@ The package, on example of the alternating projections (AP) framework, introduce
 Some of these implementations are obvious, some look artificial, and might be improved later, with the overall goal not the efficiency, but closeness to the mathematical text.
 
 Consider, for instance, how you would explain to someone a method of alternating projections (see the previous chapter).
-By expalining it, you mention concepts of sets, then you mark some of them as feasible sets by requiring them to havsome properties, for instance, being convex.
+By explaining it, you would mention concepts of sets, then you would mark some of them as feasible sets by requiring them to have some properties, for instance, being convex.
 Then you would explain what is the projection operation and how is it related to finding the closest point in the convex set.
-Then you would introduce the broad class of the alternating projections, specifying that here you will use its variant sometimes named as POCS (projections on teh convex sets), and explain that the method proceeds iteratively and converges either to a feasible point or to a stable cycle of length 2 (for 2 sets).
-You would, most probably, mention that in practice the method is allowed to run for some fixed number of iterations or untill the points get close enough to each other.
+Then you would introduce the broad class of the alternating projections, specifying that here you will use its variant sometimes named as POCS (projections on the convex sets), and explain that the method proceeds iteratively and converges either to a feasible point or to a stable cycle of length 2 (for 2 sets).
+You would, most probably, mention that in practice the method is allowed to run for some fixed number of iterations or until the points get close enough to each other.
 
 In this informal explanation one can extract however several important formal or abstract concepts. 
-These are of the feasible sets, convex sets as a particular case of feasible sets, conscept of projection operator, abstract concept of a feaiblity problem, and a concept of a method of alternating projections to solve it, with a particular subtipe POCS and maybe a supertype of absstract "algortihms".
-These absstract and particular concepts can be implemented in Julia as abstract and concrete types, but you might think why does ne need to do it, as the algorithm itself is quite straitforward to program in most languages.
+These are of the feasible sets, convex sets as a particular case of feasible sets, concept of projection operator, abstract concept of a feasibility problem, and a concept of a method of alternating projections to solve it, with a particular subtype POCS and maybe a supertype of abstract "algorithm".
+These abstract and particular concepts can be implemented in Julia as abstract and concrete types, but you might think why does ne need to do it, as the algorithm itself is quite straightforward to program in most languages.
 Well, the idea to do implement all the concepts in an abstract way has first of all the goal of generalisation.
 When you write these concepts on paper, it is helpful to see analogies and/or refer one problem to another class of the problems, so in the proof of some properties you might concentrate only on the proof of some small details specific to this type of problem.
+
 The same should work also in the programming languages, I hope.
-For instance, suppose you want now to explain to someone Gerschberg-Saxton algorithm for phase retrieval problem.
-You might simply describe four simple steps of the algorithm, and it would remain some magic for your listener, or you can formulate it in the framework of feasibility problem, with sligtly different type of the feasible sets and slightly different projection operations.
-With the same easyness it should be programmed -- we need just introduce another subtypes of the feasible sets and define the projection operation on them.
-And this is exactly wat the multiple dispatch feature of Julia does, so that's why I think it might be intersting to try to implement this in Julia.
+For instance, suppose you want now to explain to someone Gerchberg-Saxton algorithm for phase retrieval problem.
+You might simply describe four simple steps of the algorithm, and it would remain some magic for your listener, or you can formulate it in the framework of feasibility problem, with slightly different type of the feasible sets and slightly different projection operations.
+With the same easiness it should be possible to be programmed -- we need just to  introduce another subtypes of the feasible sets and define the projection operation on them.
+And this is exactly wat the multiple dispatch feature of Julia does, so that's why I think it might be interesting to try to implement this in Julia.
 One additional reason, with several algorithms already implemented in one package, it would be easier to make quick experiments, like what if we use this algorithm to that sort of problem? 
-With proper hyerearceis of abstract types for the feasible sets and the methods for the problem solutions, its should be easy.  
+With proper hierarchies of abstract types for the feasible sets and the methods for the problem solutions, its should be easy.  
 
 ## Example of type hierarchy: `FeasibleSet`
 
@@ -116,7 +117,7 @@ x \in \aset <: ConstrainedByAmplitude(a),
 X \in \Aset <: ConstrainedByAmplitude(A).
 ```
 
-Now the phase retrieval problem can be seen as a feasibilty problem
+Now the phase retrieval problem can be seen as a feasibility problem
 ```math
 \text{find } x \in A \cap B, \ A = 𝓐_A, \ B= F 𝓐_a
 ```
@@ -147,7 +148,7 @@ struct AP <: APMethod
     maxϵ
 end
 ```
-and the fuction looks both neater and more general now:
+and the function looks both neater and more general now:
 ```julia
 function solve(p::Problem,x⁰,alg::APMethod)
 ```
@@ -159,19 +160,19 @@ Thinking in the same logic as used when creating types for the feasible sets, we
 and so on.
 
 It is not however 100% clear what should belong to the concrete types.
-For instance, whether the backward and forward operations should belong to the method or to the set defintion?
-On one hand, the defintions like `ConstrainedBySupport(a)` are valid only in some fixed basis, and thus the operations like forward and backward are only use to bring us to the basis where these operations are easier to perform (consider, for instacne, variant of TIP algorithm, where projection of the PSFs can be performed directly in the frequency domain, thus saving two `fft` operations).
+For instance, whether the backward and forward operations should belong to the method or to the set definition?
+On one hand, the definitions like `ConstrainedBySupport(a)` are valid only in some fixed basis, and thus the operations like forward and backward are only use to bring us to the basis where these operations are easier to perform (consider, for instacne, variant of TIP algorithm, where projection of the PSFs can be performed directly in the frequency domain, thus saving two `fft` operations).
 On the other hand, the operations like forward and inverse transforms in the GS algorithm, or, in much more extent, component-wise inversion of TIP algorithm, are binded to their names, and same GS without the Fourier transforms and TIP without inversions would be named just alternating projections.
 In addition, this simplifies the implementation of projections a little bit.
 
 At the current moment, I have chosen to bind the forward and backward operations to the method definition, but the things might change with the future versions.
 
-The initial and terminational conditions (`initerm`) are not the part of the abstact method, but might be sought as part of a particular implementation.
+The initial and termination conditions (`initerm`) are not the part of the abstact method, but might be sought as part of a particular implementation.
 Then it is much like as with the feasible sets, and we can introduce the concrete types containing `initerm`.
 
 ## Function `solve`
 
-Now it is not difficult to write the implementation of the fucntion `solve` for a 
+Now it is not difficult to write the implementation of the function `solve` for a 
 feasibility problem using AP method:
 ```julia
 function solve(p::FeasibilityProblem, x⁰, alg::AP)
@@ -214,7 +215,7 @@ Of course, to be able to use function `solve` from the previous section, we need
 to introduce the projections.
 And here, using the Julia's power of multiple dispatch, we can write teh implementations
 of projections only for the sets for which we know how to do it.
-This automatically implies the most general implemenataion as this:
+This automatically implies the most general implementation as this:
 ```julia
 function project(x, feasset::FeasibleSet)
     error("Don't know how to project on ", typeof(feasset))
@@ -243,16 +244,17 @@ abs.(z) ≈ abs.(y)
 
 ## Workflow and package structure
 
-As the second goal of this project is to become more familair with th eprogramming in Julia, I log here my steps to create the "workspace", like set up of IDE for the package and its documetnation development and steps for creating and extending the package functionality.
+As the second goal of this project is to become more familiar with the programming in Julia, I log here my steps to create the "workspace", like set up of IDE for the package and its documentation development and steps for creating and extending the package functionality.
 This log represents my personal and unexperienced experience, so it might be far from the ideal and not optimised.
 
 ### Development workflow
 
-Working from PyCharm with Julia plugin.
+I'm working in PyCharm with Julia plugin installed.
+The tests are located in `test\runtests.jl` file, which I can rerun
+using Shift+F10 shortcut.
+In the terminal window I have opened several terminals, one for compiling the documentation, another for starting Jupyter lab, another for running Julia repl.
 
-run tests with Shift+F10, in the terminal window open several terminals, one for compiling the documentation, another for starting Jupyter lab, another for running Julia repl.
-
-I start Julia REPL in the terminal by julia command. It works because I have created a special folder D:\Documents\bin, added it to the Windows PATH variable and created there julia.bat file containing single line
+I start Julia REPL in the terminal by julia command. It works because I have created a special folder `D:\Documents\bin`, added it to the Windows PATH variable and created there `julia.bat` file containing single line
 
 ```commandline
 "D:\Julia-1.2.0\bin\julia.exe" %*
@@ -270,7 +272,7 @@ and start Revise typing
 using Revise
 ```
 
-Then I try different things with the introduced by the package commands, modify the code, and save the best pieces in test files or in the demo notebooks.
+Then I try different things with the introduced by the package commands, modify the code, and save the best pieces in test files or in the demo notebooks or in the `runtests.jl`.
 
 ### Documentation workflow
 in the second terminal window, in docs dirtectory, run 
@@ -282,12 +284,15 @@ In the third terminal window, also in the `docs` folder, issue
 ```commandline
 python -m http.server --bind localhost
 ```
-edit, save, run again `make.jl`, see the results
+
+Now the documentation can be seen in web browser by  http://127.0.0.1:8000/build/ url.
+Edit, save, run again `make.jl`, check the results in the browser.
+More info in the [docs of Documenter.jl.](https://juliadocs.github.io/Documenter.jl/stable/man/guide/)
 
 ### Package structure
 
 Here are the steps I used to create the package `AlternatingProjections`. 
-I have decided to generate its intial structure with [`PkgTemplate` package](https://github.com/invenia/PkgTemplates.jl).
+I have decided to generate its initial structure with [`PkgTemplate` package](https://github.com/invenia/PkgTemplates.jl).
 
 
 0. Check the git configuration for the presence of the required fields (see [doc page](https://invenia.github.io/PkgTemplates.jl/stable/#Usage-1) of `PkgTemplate`)
@@ -410,7 +415,7 @@ Project AlternatingProjections v0.1.0
 ```
 
  
-4.  I will open the directory in Atom-Juno and in Pycharm. The former has nice integration with Julia, the latter has powerful editing features. In PyCharm, set the project interpreter to "none" (it's not a Python project)
+4.  I will open the directory in Atom-Juno and/or in Pycharm. The former has nice integration with Julia, the latter has powerful editing features. In PyCharm, set the project interpreter to "none" (it's not a Python project)
 
 In Juno's Repl I activate the environment, load Revise package and load the just created AlternatingProjection package
     
@@ -437,7 +442,7 @@ To check the Revise package tracks the changes in the code, let's export the gre
 export greet
 ```
 
-and save the file. Now REPL should see greet function
+and save the file. Now REPL should see `greet` function
 ```commandline
 julia> greet()
 Hello World!
@@ -449,13 +454,15 @@ The package is ready for the development.
 # Package features
 
 - types for the frequently used feasible sets and projections on them
-- a general AP algorithm and examples of its adaptation to popular AP algorithms, including:
-    - Gerschberg-Saxton
-    - Vector Gerschberg-Saxton
-    - Gerschberg-Papoulis
+- a general AP algorithm and examples of its adaptation to popular AP algorithms, including:[^1]
+    - Gerchberg-Saxton
+    - *Vector Gerchberg-Saxton*
+    - *Gerchberg-Papoulis*
     - TIP
-    - Douglas–Rachford
-    - DRAP
+    - *Douglas–Rachford*
+    - *DRAP*
+    
+[^1]: not implemented features are shown with italics
     
 
 # Manual outline

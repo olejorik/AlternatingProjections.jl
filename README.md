@@ -31,7 +31,7 @@ To build documentation, cd to `docs` folder and run `julia make.jl`
 
 ## Info
 ### Version
-Permanently alpha?
+0.1
 
 ### Owner
 Oleg Soloviev, o.a.soloviev@tudelft.nl

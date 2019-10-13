@@ -4,7 +4,7 @@ using Test
 @testset "AlternatingProjections.jl" begin
     # Write your own tests here.
 
-    S = SupportConstraint([true, false,true])
+    S = ConstrainedBySupport([true, false,true])
     A = ConstrainedByAmplitude([1, sqrt(2), 5])
     x = [1, 2, 3]
     y = [2im, -2 + 2im, 6 - 8im]
