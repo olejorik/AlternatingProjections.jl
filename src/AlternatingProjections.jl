@@ -85,6 +85,8 @@ function project(x, feasset::FeasibleSet)
     error("Don't know how to project on ", typeof(feasset))
 end
 
+reflect(x, feasset::FeasibleSet) = 2 * project(x, feasset) - x
+
 
 # Problems :-)
 abstract type Problem end
@@ -96,6 +98,19 @@ struct FeasibilityProblem <: Problem
     backward
 end
 
+
+
+"""
+    solve(p::Problem,x⁰,alg::APMethod)
+
+
+
+# Examples
+
+```jldoctest
+julia>
+```
+"""
 function solve(p::Problem,x⁰,alg::APMethod)
     error("Don't know how to solve ", typeof(p), " with method ", typeof(alg))
 end
@@ -130,6 +145,8 @@ function solve(p::FeasibilityProblem, x⁰, alg::AP)
 
 end
 
+
+### Below is the old approach
 #TODO this should replace the apsolve function
 function findfeasible(A::FeasibleSet,B::FeasibleSet,forward,backward, alg::APMethod)
 end

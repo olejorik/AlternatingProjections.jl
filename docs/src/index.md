@@ -476,6 +476,10 @@ The package is ready for the development.
 project(x, feasset::FeasibleSet)
 ```
 
+```@docs
+solve( p::FeasibilityProblem, x⁰, alg::AP)
+```
+
 ### Types
 
 ```@docs 
@@ -487,11 +491,11 @@ ConvexSet
 ```
 
 ```@docs 
-AmplitudeConstraint
+AmplitudeConstrainedSet
 ```
 
 ```@docs 
-SupportConstraint
+ConstrainedBySupport
 ```
 
 # Index

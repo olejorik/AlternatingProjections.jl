@@ -8,3 +8,5 @@ makedocs(sitename="Alternating Projections")
 # #     format = LaTeX(platform = "docker"),
 #     sitename="Alternating Projections"
 # )
+
+deploydocs(repo = "github.com/olejorik/AlternatingProjections.jl.git")
