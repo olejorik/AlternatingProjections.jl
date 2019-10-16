@@ -12,12 +12,12 @@ makedocs(sitename="Alternating Projections.jl",
     clean = false,
     authors = "O.S.",)
 
-using DocumenterLaTeX
-makedocs(
-#     format = LaTeX(),
-    format = LaTeX(platform = "docker"),
-    sitename="Alternating Projections"
-)
+# using DocumenterLaTeX
+# makedocs(
+# #     format = LaTeX(),
+#     format = LaTeX(platform = "docker"),
+#     sitename="Alternating Projections"
+# )
 
 deploydocs(repo = "github.com/olejorik/AlternatingProjections.jl.git",
     target = "build",)
