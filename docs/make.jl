@@ -1,7 +1,7 @@
 using Documenter, AlternatingProjections
 
 makedocs(sitename="Alternating Projections.jl",
-    modules = [lternating Projections],
+    modules = [Alternating Projections],
     format = Documenter.HTML(
         # Use clean URLs, unless built as a "local" build
         prettyurls = !("local" in ARGS),
