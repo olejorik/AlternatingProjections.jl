@@ -1,6 +1,6 @@
 using Documenter, AlternatingProjections
 
-makedocs(sitename="Alternating Projections.jl",
+makedocs(sitename="AlternatingProjections.jl",
     modules = [Alternating Projections],
     format = Documenter.HTML(
         # Use clean URLs, unless built as a "local" build
