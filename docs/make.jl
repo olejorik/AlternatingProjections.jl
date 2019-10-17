@@ -1,13 +1,13 @@
 using Documenter, AlternatingProjections
 
 makedocs(sitename="AlternatingProjections.jl",
-    modules = [Alternating Projections],
+    modules = [AlternatingProjections],
     format = Documenter.HTML(
         # Use clean URLs, unless built as a "local" build
-        prettyurls = !("local" in ARGS),
+        prettyurls = true,
         canonical = "https://olejorik.github.io/AlternatingProjections.jl/stable/",
         # assets = ["assets/favicon.ico"],
-        highlights = ["yaml"],
+        # highlights = ["yaml"],
     ),
     clean = false,
     authors = "O.S.",)
@@ -16,7 +16,7 @@ makedocs(sitename="AlternatingProjections.jl",
 # makedocs(
 # #     format = LaTeX(),
 #     format = LaTeX(platform = "docker"),
-#     sitename="Alternating Projections"
+#     sitename="AlternatingProjections"
 # )
 
 deploydocs(repo = "github.com/olejorik/AlternatingProjections.jl.git",
