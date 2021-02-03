@@ -103,6 +103,12 @@ end
 """
     solve(p::Problem,x⁰,alg::APMethod)
 
+    solve(p::Problem,x⁰,alg::APMethod, keephistory::Bool)
+
+    solve(p::Problem,x⁰,alg::APMethod, keephistory::Bool, snapshots)
+
+Solve problem `p`, using method `alg`. Optionally keep the error history and the iteration snapshots
+
 
 
 # Examples
@@ -117,7 +123,7 @@ end
 
 
 #TODO This is better than below, finish this approach
-function solve(p::FeasibilityProblem, x⁰, alg::AP)
+function solve(p::FeasibilityProblem, x⁰, alg::AP, keephistory = false, snapshots = [])
     A = p.A
     B = p.B
     forward = p.forward
@@ -127,7 +133,17 @@ function solve(p::FeasibilityProblem, x⁰, alg::AP)
 
     k = 0
     xᵏ = x⁰
+    # x̃ᵏ⁺¹ = similar(xᵏ)
     ϵ = Inf
+
+    if keephistory
+        errhist = zeros(maxit)
+    end
+
+    if length(snapshots) != 0
+        xhist = similar(x⁰, size(x⁰)..., length(snapshots))
+        j=1
+    end
 
     while k < maxit && ϵ > maxϵ
         ỹᵏ = forward(xᵏ)
@@ -136,12 +152,30 @@ function solve(p::FeasibilityProblem, x⁰, alg::AP)
         xᵏ⁺¹ = project(x̃ᵏ⁺¹, A)
         ϵ = LinearAlgebra.norm(xᵏ⁺¹ - xᵏ)
         xᵏ = xᵏ⁺¹
-    #         println(ϵ)
         k += 1
+
+    #         println(ϵ)
+        if keephistory
+            errhist[k] = ϵ
+        end
+
+        if k ∈ snapshots
+            xhist[:,:,j] = xᵏ
+             j += 1
+        end
+
     end
 
     println("To converge with $ϵ accuracy, it took me $k iterations")
-    return xᵏ
+    if keephistory
+        if length(snapshots) != 0
+            return xᵏ, errhist, xhist
+        else
+            return xᵏ, errhist
+        end
+    else
+        return xᵏ
+    end
 
 end
 

@@ -23,4 +23,7 @@ using Test
     gs=AP(3000,1e-6)
     z= solve(p, zeros(size(y)),gs)
     @test abs.(z) ≈ abs.(y)
+    z, h, snap = solve(p, zeros(ComplexF64, size(y)),gs, true, [1, 5, 10])
+    @test length(h) == 3000
+    @test size(snap) == (10,10,3)
 end
