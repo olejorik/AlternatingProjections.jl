@@ -11,11 +11,13 @@ struct GS <: APMethod #todo should be sets part of this or added to the step! on
     forward
     backward
 end
-export GS
+export GS, PR
 
-function GS(a::Array,A::Array)
-    size(a) == size(A) ? (P, PB) = (plan_fft(A), plan_ifft(A)) : error("Array sizes do not match")
-    GS(ConstrainedByAmplitude(a), ConstrainedByAmplitude(A), x -> P * x, x -> PB * x)
+function PR(a::Array,A::Array)
+    size(a) == size(A) ? (P, PB) = (plan_fft(complex(A)), plan_ifft(complex(A))) : error("Array sizes do not match")
+    forward(xf,x) = mul!(xf, P, x)
+    backward(xb,x) = mul!(xb, PB, x)
+    FeasibilityProblem(ConstrainedByAmplitude(a), ConstrainedByAmplitude(A),  forward, backward)
 end
 
 function init!(alg::GS,  x⁰)
@@ -44,6 +46,6 @@ function step!(alg::GS, xᵏ)
 #     println('z',zk)
 #
 
-    return project(a, ifft(project(A, fft(xᵏ))))
+    return project(ifft(project(fft(xᵏ), A)),a)
     #todo replace with plan
 end
