@@ -46,6 +46,11 @@ end
 
 export ConstrainedByAmplitudeMasked
 
+
+# here the bacward plan is in place
+FourierTransformedSet(s::AmplitudeConstrainedSet) = 
+    FourierTransformedSet(s, FFTW.plan_fft(complex(float(s.amp))), FFTW.plan_ifft!(complex(float(s.amp))))
+
 function project!(xp, x, feasset::ConstrainedByAmplitude)
     # @inbounds for i in eachindex(xp)
     #     xp[i] = feasset.amp[i] * exp( im * angle(x[i]))
@@ -61,6 +66,14 @@ function project!(xp, x, feasset::ConstrainedByAmplitude)
     end
 
     return xp
+end
+
+function project!(x, feasset::ConstrainedByAmplitude)
+    for i in eachindex(x)
+        x[i] = update_amplitude(feasset.amp[i], x[i])
+    end
+
+    return x
 end
 
 function project!(xp, x, feasset::ConstrainedByAmplitudeMasked)

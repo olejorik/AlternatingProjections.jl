@@ -19,11 +19,26 @@ using Test
     # @test abs.(fft(z)) ≈  abs.(Y)
 
 
-    p= PR(abs.(y),abs.(Y))
-    gs=AP(3000,1e-6)
-    z= solve(p, one(y),gs)
-    @test abs.(z) ≈ abs.(y)
-    z, h, snap = solve(p, one(y),gs, true, [1, 5, 10])
-    @test length(h) == 3000
-    @test size(snap) == (10,10,3)
+    # p= PR(abs.(y),abs.(Y))
+    # gs=AP(3000,1e-6)
+    # z= solve(p, one(y),gs)
+    # @test abs.(z) ≈ abs.(y)
+    # z, h, snap = solve(p, one(y),gs, true, [1, 5, 10])
+    # @test length(h) == 3000
+    # @test size(snap) == (10,10,3)
+
+end
+
+
+@testset "FourierTransformedSet" begin
+    a = ConstrainedByAmplitude(ones(5,5))
+    A = FourierTransformedSet(a);
+    x = rand(Complex{Float64}, 5,5);
+    x = project!(x,a)
+    @test abs.(x) ≈ ones(5,5)
+    
+    y = similar(x);
+    project!(y,x,A)
+    @test abs.(fft(y)) ≈ ones(5,5)
+
 end
