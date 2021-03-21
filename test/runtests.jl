@@ -42,3 +42,29 @@ end
     @test abs.(fft(y)) ≈ ones(5,5)
 
 end
+
+@testset "Amplitude and Shape Constraints" begin
+    a = [ 8 - i^2 - j^2 for i in -2:2, j in -2:2]
+    m = [ i >= 0 && j >= 0 for i in -2:2, j in -2:2]
+
+    A = ConstrainedByAmplitude(a)
+    B = ConstrainedByAmplitudeMasked(a,m)
+    C = ConstrainedByShape(a)
+    D = ConstrainedByShapeMasked(a, m)
+
+    x = randn(ComplexF64, 5,5)
+    y = project(x,A)
+    z = project(x, B)
+    v = project(x,C)
+    w = project(x, D)
+
+    @test abs.(y) ≈ a
+    @test abs.(z)[m] ≈ a[m]
+    @test abs.(v)/sum(abs.(v)) ≈ a /sum(a)
+
+    s = abs.(x)[D.mask]' * D.amp[D.mask] / D.n
+
+    @test abs.(w[m])/s ≈ a[m]
+
+
+end

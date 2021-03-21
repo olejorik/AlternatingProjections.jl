@@ -112,7 +112,7 @@ generatingset(s::LinearTransformedSet) = s.set
 forward!(s::LinearTransformedSet) = ((xf,x) ->mul!(xf,s.fplan,x))
 backward!(s::LinearTransformedSet) = (x ->mul!(x,s.bplan,x))
 
-struct FourierTransformedSet{TS,PF,PB} <: LinearTransformedSet where {TS <: TransformedSet, PF <: AbstractFFTs.Plan, PB <: AbstractFFTs.Plan}
+struct FourierTransformedSet{TS,PF,PB} <: LinearTransformedSet where {TS <: FeasibleSet, PF <: AbstractFFTs.Plan, PB <: AbstractFFTs.Plan}
     set::TS
     fplan::PF
     bplan::PB
@@ -251,7 +251,8 @@ function solve(p::FeasibilityProblem, x⁰::T, alg::AP, keephistory::Bool, snaps
         project!(yᵏ,xᵏ, B)
         project!(xᵏ⁺¹,yᵏ, A)
 
-        err .= xᵏ⁺¹ .- xᵏ
+        err .= xᵏ⁺¹ .- xᵏ # This doesn't say much in unfeasible case
+        # err .= xᵏ⁺¹ .- yᵏ
         ϵ = LinearAlgebra.norm(err)
         xᵏ .= xᵏ⁺¹
         k += 1
@@ -332,7 +333,8 @@ include("AmplitudeConstraint.jl")
 # algortihms
 include("GerchbergSaxton.jl")
 
-
+# Iterators
+include("iterators.jl")
 
 
 

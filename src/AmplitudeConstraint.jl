@@ -1,6 +1,7 @@
 """
-# type AmplitudeConstraint
+    AmplitudeConstrainedSet 
 
+Abstract set of complex-values `x` with a given absolute value `|x| = a`.
 
 # Examples
 
@@ -12,21 +13,26 @@ abstract type  AmplitudeConstrainedSet <: FeasibleSet end
 export AmplitudeConstrainedSet
 
 """
-    ConstrainedByAmplitude(a)
+    ConstrainedByAmplitude{T,N}
 
-Set defined by the amplitude constraint `|x| = a`.
+Set of abstract arryas with elemet typ `T` and dimensions `N defined by the amplitude constraint `|x| = amp`. 
 
 """
 struct ConstrainedByAmplitude{T,N} <: AmplitudeConstrainedSet where {T <: Real, N}
     amp::Array{T,N}  #
 end
 
-function ConstrainedByAmplitude(a::AbstractArray{Union{T,Nothing},N}) where {T,N} 
-    ConstrainedByAmplitude{Union{T,Nothing},N}(a)
-end
+"""
+ConstrainedByAmplitude(a::AbstractArray{T,N})
 
+Construct set defined by the amplitude constraint `|x| = a`. Type and dimension of the set are inhereited from the array.
+"""
 function ConstrainedByAmplitude(a::AbstractArray{T,N}) where {T,N} 
     ConstrainedByAmplitude{T,N}(a)
+end
+
+function ConstrainedByAmplitude(a::AbstractArray{Union{T,Nothing},N}) where {T,N} 
+    ConstrainedByAmplitude{Union{T,Nothing},N}(a)
 end
 
 # function ConstrainedByAmplitude(a::AbstractArray{T,N}) 
@@ -35,7 +41,8 @@ end
 export ConstrainedByAmplitude
 
 """
-ConstrainedByAmplitudeMasked(a, mask::Vector{CartesianIndex{N}})
+    ConstrainedByAmplitudeMasked(a, mask::Vector{CartesianIndex{N}})
+    ConstrainedByAmplitudeMasked(a, AbstractArray{Bool})
 
 The amplitude constrained set only in the indexes given by mask:  `|xᵢ| = aᵢ` for `i ∈ mask`.
 """
@@ -44,10 +51,12 @@ struct ConstrainedByAmplitudeMasked{T,N} <: AmplitudeConstrainedSet where {T <: 
     mask::Vector{CartesianIndex{N}}  #
 end
 
+ConstrainedByAmplitudeMasked(a, m::AbstractArray{Bool}) = ConstrainedByAmplitudeMasked(a, findall(m))
+
 export ConstrainedByAmplitudeMasked
 
 
-# here the bacward plan is in place
+# here the backward plan is in place
 FourierTransformedSet(s::AmplitudeConstrainedSet) = 
     FourierTransformedSet(s, FFTW.plan_fft(complex(float(s.amp))), FFTW.plan_ifft!(complex(float(s.amp))))
 
@@ -83,6 +92,13 @@ function project!(xp, x, feasset::ConstrainedByAmplitudeMasked)
     return xp
 end
 
+function project!(x, feasset::ConstrainedByAmplitudeMasked)
+    @inbounds for i in feasset.mask
+        x[i] = update_amplitude(feasset.amp[i], x[i])
+    end
+    return x
+end
+
 update_amplitude(amp, x) = isnothing(amp) ? x : amp * _unit_amp(x)
 
 update_amplitude!(xp, amp, x) = isnothing(amp) ? x : amp * _unit_amp(x)
@@ -97,3 +113,6 @@ end
 
 
 size(feasset::ConstrainedByAmplitude) = size(feasset.amp)
+
+
+include("ShapeConstraint.jl")
