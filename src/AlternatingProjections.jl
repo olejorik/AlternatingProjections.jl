@@ -76,7 +76,7 @@ abstract type ConvexSet <: FeasibleSet end
 """
     TransformedSet
 
-Set obtained by some transformation from a feasible set.
+Set obtained by some transformation from a feasible set (`generatingset`).
 Should support `forward!` and `bacward!` methods. 
 """
 abstract type TransformedSet <: FeasibleSet end
@@ -229,12 +229,14 @@ function solve(p::FeasibilityProblem, x⁰::T, alg::AP, keephistory::Bool, snaps
 
     if keephistory
         errhist = Vector{Float64}(undef, maxit)
+        disthist = Vector{Float64}(undef, maxit)
     else
         errhist = Float64[]
+        disthist = Float64[]
     end
 
     if length(snapshots) != 0
-        xhist =fill(x⁰,length(snapshots))
+        xhist =[copy(x⁰) for i in 1:length(snapshots)]
         j=1
     else
         xhist = T[]
@@ -251,8 +253,8 @@ function solve(p::FeasibilityProblem, x⁰::T, alg::AP, keephistory::Bool, snaps
         project!(yᵏ,xᵏ, B)
         project!(xᵏ⁺¹,yᵏ, A)
 
-        err .= xᵏ⁺¹ .- xᵏ # This doesn't say much in unfeasible case
-        # err .= xᵏ⁺¹ .- yᵏ
+        err .= xᵏ⁺¹ .- xᵏ # This doesn't say much in infeasible case, but is OK in case of binary aperture
+        # dist .= xᵏ⁺¹ .- yᵏ # this calculates true error but can stay large in case of infeasible case
         ϵ = LinearAlgebra.norm(err)
         xᵏ .= xᵏ⁺¹
         k += 1
@@ -260,16 +262,18 @@ function solve(p::FeasibilityProblem, x⁰::T, alg::AP, keephistory::Bool, snaps
     #         println(ϵ)
         if keephistory
             errhist[k] = ϵ
+            disthist[k] = LinearAlgebra.norm(xᵏ⁺¹ .- yᵏ)
         end
 
         if k ∈ snapshots
+            println("Saving snapshot # $j, iteration # $k")
             xhist[j] .= xᵏ
              j += 1
         end
 
     end
 
-    # println("To converge with $ϵ accuracy, it took me $k iterations")
+    println("To converge with $ϵ accuracy, it took me $k iterations")
     # if keephistory
     #     if length(snapshots) != 0
     #         return xᵏ, errhist, xhist
@@ -279,7 +283,7 @@ function solve(p::FeasibilityProblem, x⁰::T, alg::AP, keephistory::Bool, snaps
     # else
     #     return xᵏ, Vector{Float64, (0,)}, Vector{T, (0,)}
     # end
-    return xᵏ, errhist, xhist
+    return (xᵏ, yᵏ), errhist, xhist[1:j-1], disthist, k
 
 end
 
