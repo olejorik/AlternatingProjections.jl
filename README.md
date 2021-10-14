@@ -1,6 +1,6 @@
 # AlternatingProjections.jl
 
-_A small project started as test of whether it is ineed as easy as advertised to translate algorithms from their mathematical description to Julia language._
+_A small project started as test of whether it is indeed as easy as advertised to translate algorithms from their mathematical description to Julia language._
 
 Several simple alternating projection algorithms are planned for implementation:
 - Gerchberg-Saxton (GS)

@@ -1,26 +1,26 @@
 """
     AmplitudeConstrainedSet 
 
-Abstract set of complex-values `x` with a given absolute value `|x| = a`.
+Abstract set of complex-values `x` with a given absolute value `|x| = amp`. The amplitude can be extracted by function `amp`.
 
-# Examples
-
-```jldoctest
-julia>
-```
 """
 abstract type  AmplitudeConstrainedSet <: FeasibleSet end
 export AmplitudeConstrainedSet
 
+amp(s::AmplitudeConstrainedSet) = error("amplitude is not defined for $typeof(s)")
+getelement(s::AmplitudeConstrainedSet) = complex(float(amp(s))) # element of the set is a complex array
+
 """
     ConstrainedByAmplitude{T,N}
 
-Set of abstract arryas with elemet typ `T` and dimensions `N defined by the amplitude constraint `|x| = amp`. 
+Set of abstract arryas with element type `T` and dimensions `N` defined by the amplitude constraint `|x| = amp`. 
 
 """
 struct ConstrainedByAmplitude{T,N} <: AmplitudeConstrainedSet where {T <: Real, N}
     amp::Array{T,N}  #
 end
+
+amp(s::ConstrainedByAmplitude) = s.amp
 
 """
 ConstrainedByAmplitude(a::AbstractArray{T,N})
@@ -54,11 +54,12 @@ end
 ConstrainedByAmplitudeMasked(a, m::AbstractArray{Bool}) = ConstrainedByAmplitudeMasked(a, findall(m))
 
 export ConstrainedByAmplitudeMasked
+amp(s::ConstrainedByAmplitudeMasked) = s.amp
 
 
 # here the backward plan is in place
 FourierTransformedSet(s::AmplitudeConstrainedSet) = 
-    FourierTransformedSet(s, FFTW.plan_fft(complex(float(s.amp))), FFTW.plan_ifft!(complex(float(s.amp))))
+    FourierTransformedSet(s, FFTW.plan_fft(getelement(s)), FFTW.plan_ifft!(getelement(s)))
 
 function project!(xp, x, feasset::ConstrainedByAmplitude)
     # @inbounds for i in eachindex(xp)

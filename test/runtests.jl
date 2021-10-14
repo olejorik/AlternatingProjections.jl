@@ -41,6 +41,11 @@ end
     project!(y,x,A)
     @test abs.(fft(y)) ≈ ones(5,5)
 
+    @test AlternatingProjections.getelement(a) == ones(5,5)
+    B = zeros(Complex,(5,5)); B[1] +=1;
+    @test AlternatingProjections.getelement(A) ≈ B
+     
+    
 end
 
 @testset "Amplitude and Shape Constraints" begin
@@ -67,4 +72,30 @@ end
     @test abs.(w[m])/s ≈ a[m]
 
 
+end
+
+@testset "solve" begin
+
+    # Quick Gerchberg-Saxton
+    n = 50
+    m = 10
+
+    amp = 0.35
+    x = zeros(ComplexF64, n, n); x[1:m,1:m] .= exp.(amp * 2π * im * randn(Float64, m, m))
+    a = abs.(x)
+    X = fft(x)
+    A = abs.(X)
+    aset = ConstrainedByAmplitude(a)
+    Aset = FourierTransformedSet(ConstrainedByAmplitude(A))
+    problem = TwoSetsFP(aset,Aset)
+    # start with a good initial guess
+    sol = solve(problem, APparam(), x⁰ = x + 1.5 * randn(ComplexF64, n, n), maxit = 1000)
+    
+    phasediff = -pi .+ mod2pi.(pi .+ angle.(sol[1][1:m,1:m]) .- angle.(x[1:m,1:m]))
+    phasediff .-= sum(phasediff)/m^2
+    phaserms = sqrt(sum(abs2,phasediff))/m
+    #phase difference can be visualised 
+    # heatmap(-pi .+ mod2pi.(pi .+ angle.(sol[1][1:m,1:m]) .- angle.(x[1:m,1:m])))
+    println("phase rms = $phaserms")
+    @test phaserms < 1e-6
 end

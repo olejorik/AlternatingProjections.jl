@@ -5,7 +5,7 @@ Type representing Gerchberg-Saxton phase retrieval algorithm.
 
 Requires (in the current realisation) two amplitude constraints or two arrays of equal sizes.
 """
-struct GS <: APMethod #todo should be sets part of this or added to the step! only?
+struct GS <: ProjectionsMethod #todo should be sets part of this or added to the step! only?
     a::ConstrainedByAmplitude
     A::ConstrainedByAmplitude
     forward
@@ -17,7 +17,7 @@ function PR(a::Array,A::Array)
     size(a) == size(A) ? (P, PB) = (plan_fft(complex(A)), plan_ifft(complex(A))) : error("Array sizes do not match")
     forward(xf,x) = mul!(xf, P, x)
     backward(xb,x) = mul!(xb, PB, x)
-    FeasibilityProblem(ConstrainedByAmplitude(a), ConstrainedByAmplitude(A),  forward, backward)
+    TwoSetsFP(ConstrainedByAmplitude(a), ConstrainedByAmplitude(A),  forward, backward)
 end
 
 function init!(alg::GS,  x⁰)
