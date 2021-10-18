@@ -29,9 +29,9 @@ function solve(p::TwoSetsFP, alg::APparam, x⁰, maxϵ, maxit, keephistory::Bool
     B = p.B
 
     # process the default parameters
-    ismissing(x⁰) && ( x⁰ = getelement(A) )
-    ismissing(maxϵ) && (maxϵ = 1e-15)
-    ismissing(maxit) && (maxit = 100)
+    !ismissing(x⁰) || ( x⁰ = getelement(A) )
+    !ismissing(maxϵ) || (maxϵ = 1e-15)
+    !ismissing(maxit) || (maxit = 100)
 
     k = 0
     ϵ = Inf

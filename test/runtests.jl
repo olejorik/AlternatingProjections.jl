@@ -74,6 +74,22 @@ end
 
 end
 
+@testset "ConstrainedByShapeSaturated" begin
+    a = map(x -> 1-x^2, -1:0.1:1)
+    meas = 2 * a
+    measset = ConstrainedByShapeSaturated(meas, meas .<=1)
+    meassat = copy(meas)
+    meassat[meassat .> 1] .= 1
+
+    p = project(a, measset)
+    @test p == a
+
+    p2 = project(meas, measset)
+    @test p2 == meas
+
+end
+
+
 @testset "solve" begin
 
     # Quick Gerchberg-Saxton
@@ -99,3 +115,4 @@ end
     println("phase rms = $phaserms")
     @test phaserms < 1e-6
 end
+

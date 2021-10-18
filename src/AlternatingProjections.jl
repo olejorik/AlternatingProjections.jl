@@ -26,6 +26,19 @@ abstract type Algorithm end
 # Problems :-)
 abstract type Problem end
 
+
+# Common type of a problem is feasibility problem, for which we need to introduce concept of
+# a feasuible set
+
+"""
+    FeasibleSet
+
+Abstract type representing a set for feasibility problem. For any set we should be able to take it's representative element.
+"""
+abstract type FeasibleSet end
+
+getelement(s::FeasibleSet) = error("Don't know how to take an element of $typeof(s)")
+
 abstract type FeasibilityProblem <: Problem end
 struct TwoSetsFP <: FeasibilityProblem
     A::FeasibleSet
@@ -84,16 +97,7 @@ abstract type  ProjectionsMethod <: IterativeAlgorithm end
 
 include("AP.jl")
 
-# Now the sets
 
-"""
-    FeasibleSet
-
-Abstract type representing a set for feasibility problem. For any set we should be able to take it's representative element.
-"""
-abstract type FeasibleSet end
-
-getelement(s::FeasibleSet) = error("Don't know how to take an element of $typeof(s)")
 
 # Projections
 

@@ -2,7 +2,7 @@
 TransformedSet
 
 Set obtained by some transformation from a feasible set (`generatingset`).
-Should support `forward!` and `bacward!` methods. 
+Should support `forward!` and `backward!` methods. 
 """
 abstract type TransformedSet <: FeasibleSet end
 
@@ -18,11 +18,11 @@ In-place forward transform assosiated with the set `ts`: `x ∈ ts ⇔ f(x) ∈ 
 Use `forward!(ts)(q,p)` to obtain `q = f(p)`.
 """
 function forward!(ts::TransformedSet)
-error("The forward transorm is not defined for $ts.")
+error("The forward transform is not defined for $ts.")
 end
 
 function backward!(ts::TransformedSet)
-error("The backward transorm is not defined for $ts.")
+error("The backward transform is not defined for $ts.")
 end
 
 # it's easy to get an element of a transformed set

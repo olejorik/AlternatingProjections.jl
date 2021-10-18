@@ -7,7 +7,7 @@ Abstract set of complex-values `x` with a given absolute value `|x| = amp`. The 
 abstract type  AmplitudeConstrainedSet <: FeasibleSet end
 export AmplitudeConstrainedSet
 
-amp(s::AmplitudeConstrainedSet) = error("amplitude is not defined for $typeof(s)")
+amp(s::AmplitudeConstrainedSet) = s.amp #|| error("amplitude is not defined for $(typeof(s))")
 getelement(s::AmplitudeConstrainedSet) = complex(float(amp(s))) # element of the set is a complex array
 
 """
