@@ -63,6 +63,14 @@ struct ConstrainedBySupport <: SupportConstrained
 end
 export ConstrainedBySupport
 
-function project(x, feasset::ConstrainedBySupport)
-    return feasset.support .* x
+# function project(x, feasset::ConstrainedBySupport)
+#     return feasset.support .* x
+# end
+
+function project!(xp, x, feasset::ConstrainedBySupport)
+    @inbounds for i in eachindex(xp)
+        xp[i] = feasset.support[i] * x[i]
+    end
+
+    return xp
 end

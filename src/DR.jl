@@ -1,12 +1,13 @@
 """
-AP <: ProjectionsMethod
-Classical Alternating projection method
+DR <: ProjectionsMethod
+Douglas-Rachford method
 
-Project on one set, than on another, stop after fixed number of iterations or if the desired accuracy is achieved
+Reflect with respect one set, than to another and move there halfway: x → (x + R₂R₁x)/2
+Stop after fixed number of iterations or if the desired accuracy is achieved
 """
-abstract type AP <: ProjectionsMethod end
+abstract type DR <: ProjectionsMethod end
 
-struct APparam <: AP
+struct DRparam <: DR
 x⁰
 maxit::Union{Missing,Int64}
 maxϵ::Union{Float64, Missing}
@@ -14,17 +15,17 @@ keephistory::Bool
 snapshots::Array{Int64}
 end
 
-APparam() = APparam(missing,missing,missing, false, Int64[])
+DRparam() = DRparam(missing,missing,missing, false, Int64[])
 
-initial(alg::APparam) = alg.x⁰
-tolerance(alg::APparam) = alg.maxϵ
-maxit(alg::APparam) = alg.maxit
-keephistory(alg::APparam) = alg.keephistory
-snapshots(alg::APparam) = alg.snapshots
+initial(alg::DRparam) = alg.x⁰
+tolerance(alg::DRparam) = alg.maxϵ
+maxit(alg::DRparam) = alg.maxit
+keephistory(alg::DRparam) = alg.keephistory
+snapshots(alg::DRparam) = alg.snapshots
 
 
 
-function solve(p::TwoSetsFP, alg::APparam, x⁰, maxϵ, maxit, keephistory::Bool, snapshots::Vector{Int64})
+function solve(p::TwoSetsFP, alg::DRparam, x⁰, maxϵ, maxit, keephistory::Bool, snapshots::Vector{Int64})
     A = p.A
     B = p.B
 
@@ -62,8 +63,9 @@ function solve(p::TwoSetsFP, alg::APparam, x⁰, maxϵ, maxit, keephistory::Bool
 
     while k < maxit && ϵ > maxϵ
 
-        project!(yᵏ, xᵏ, B)
-        project!(xᵏ⁺¹, yᵏ, A)
+        reflect!(yᵏ, xᵏ, B)
+        reflect!(x̃ᵏ⁺¹, yᵏ, A)
+        @. xᵏ⁺¹ = (x̃ᵏ⁺¹+ xᵏ) / 2 
 
         err .= xᵏ⁺¹ .- xᵏ # This doesn't say much in infeasible case, but is OK in case of binary aperture
         # dist .= xᵏ⁺¹ .- yᵏ # this calculates true error but can stay large in case of infeasible case
@@ -85,7 +87,7 @@ function solve(p::TwoSetsFP, alg::APparam, x⁰, maxϵ, maxit, keephistory::Bool
 
     end
 
-    println("Using $(supertype(typeof(alg))):  to converge with $ϵ accuracy, it took me $k iterations")
+    println("Using $(supertype(typeof(alg))): to converge with $ϵ accuracy, it took me $k iterations")
     # if keephistory
     #     if length(snapshots) != 0
     #         return xᵏ, errhist, xhist
@@ -99,6 +101,6 @@ function solve(p::TwoSetsFP, alg::APparam, x⁰, maxϵ, maxit, keephistory::Bool
 
 end
 
-export AP, APparam
+export DR, DRparam
 
 

@@ -1,4 +1,5 @@
-using AlternatingProjections, FFTW, LinearAlgebra
+using AlternatingProjections, FFTW
+# using LinearAlgebra
 using Test
 
 @testset "AlternatingProjections.jl" begin
@@ -10,6 +11,10 @@ using Test
     y = [2im, -2. + 2im, 6 - 8im]
     @test project(x, S) == [1, 0, 3]
     @test project(y, A) ≈  [im, -1 + im, 3 - 4im]
+
+    xr=copy(x)
+    reflect!(xr,x,S)
+    @test xr == [1, -2, 3]
 
     y = zeros(ComplexF64,10,10)  # for ComplexF64 increas the number of iterations
     y[1:5,1:5] = randn(ComplexF32, 5,5)
@@ -107,12 +112,27 @@ end
     # start with a good initial guess
     sol = solve(problem, APparam(), x⁰ = x + 1.5 * randn(ComplexF64, n, n), maxit = 1000)
     
-    phasediff = -pi .+ mod2pi.(pi .+ angle.(sol[1][1:m,1:m]) .- angle.(x[1:m,1:m]))
-    phasediff .-= sum(phasediff)/m^2
-    phaserms = sqrt(sum(abs2,phasediff))/m
-    #phase difference can be visualised 
-    # heatmap(-pi .+ mod2pi.(pi .+ angle.(sol[1][1:m,1:m]) .- angle.(x[1:m,1:m])))
-    println("phase rms = $phaserms")
-    @test phaserms < 1e-6
+    function testsolution()
+        phasediff = -pi .+ mod2pi.(pi .+ angle.(sol[1][1:m,1:m]) .- angle.(x[1:m,1:m]))
+        phasediff .-= sum(phasediff)/m^2
+        phaserms = sqrt(sum(abs2,phasediff))/m
+        #phase difference can be visualised 
+        # heatmap(phasediff)
+        println("phase rms = $phaserms")
+        @test phaserms < 1e-6
+    end
+
+    testsolution()
+
+    # and the same problem solved with DR method (it requires more iterations and other starting point)
+    sol = solve(problem, DRparam(), x⁰ = x - 1.5 * randn(ComplexF64, n, n), maxit = 3000)
+    
+    testsolution()
+
+    # and with DRAP algoritm
+    drap = DRAPparam(missing,500,missing,true,[1],0.1)
+    # sol = solve(problem, drap, maxit=1000);
+    sol = solve(problem, drap, x⁰ = x + 1.5 * randn(ComplexF64, n, n), maxit=1000);
+    testsolution()
 end
 

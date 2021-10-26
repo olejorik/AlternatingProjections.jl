@@ -55,7 +55,9 @@ ConstrainedByShapeSaturated(a, mask::Vector)
 ConstrainedByShapeSaturated(a, AbstractArray{Bool})
 
 The amplitude constrained set only in the indexes given by mask:  `|xᵢ| = s aᵢ` for `i ∈ mask` for some `s`.
-Outside the mask function should be larger than the satruation level `|xᵢ| > s ` for `i ∉ mask`
+Outside the mask function should be larger than the satruation level `|xᵢ| > s ` for `i ∉ mask`.
+
+For this set, the amplitude should be provided in the range from 0 to 1 (1 corresponding to the saturated values).
 """
 struct ConstrainedByShapeSaturated{T,N} <: AmplitudeConstrainedSet where {T <: Real, N}
     amp::Array{T,N}  #

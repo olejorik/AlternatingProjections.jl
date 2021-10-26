@@ -96,6 +96,8 @@ ProjectionsMethod is class of iterative algorithms for solving feasibility probl
 abstract type  ProjectionsMethod <: IterativeAlgorithm end
 
 include("AP.jl")
+include("DR.jl")
+include("DRAP.jl")
 
 
 
@@ -125,6 +127,20 @@ end
 Project `x` on set `A` and return the result of projection.
 """
 project(x, feasset::FeasibleSet) = project!(copy(x), x, feasset)
+
+
+# Reflections
+"""
+    reflect!(xr, x, A)
+
+Reflect `x` on set `A` using preallocated `xp`, R(x) = 2P(x) -x, where P is projection on the set.
+"""
+function reflect!(xr, x, feasset::FeasibleSet)
+    project!(xr,x,feasset)
+    #  xr .= 2 .* xr .- x
+    @. xr = 2 * xr - x
+    return xr
+end
 
 reflect(x, feasset::FeasibleSet) = 2 * project(x, feasset) - x
 
@@ -157,7 +173,7 @@ function solve(p::Problem, alg::IterativeAlgorithm,  args...)
 end
 
 
-export ProjectionsMethod, FeasibleSet, project, project!, ConvexSet, apsolve,solve, TwoSetsFP, TransformedSet, LinearTransformedSet,
+export ProjectionsMethod, FeasibleSet, project, project!, reflect, reflect!, ConvexSet, apsolve,solve, TwoSetsFP, TransformedSet, LinearTransformedSet,
 FourierTransformedSet, forward!, backward!, generatingset
 
 # Constraints

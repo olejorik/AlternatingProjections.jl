@@ -1,30 +1,35 @@
 """
-AP <: ProjectionsMethod
-Classical Alternating projection method
+DRAP <: ProjectionsMethod
+Douglas-Rachford method
 
-Project on one set, than on another, stop after fixed number of iterations or if the desired accuracy is achieved
+Combination of DR and AP method (see [1]).
+Stop after fixed number of iterations or if the desired accuracy is achieved
+
+    [1] Nguyen Hieu Thao, Oleg Soloviev, and Michel Verhaegen. Convex combination of alternating
+    projection and Douglas-Rachford operators for phase retrieval. Adv. Comput. Math.
 """
-abstract type AP <: ProjectionsMethod end
+abstract type DRAP <: ProjectionsMethod end
 
-struct APparam <: AP
+struct DRAPparam <: DRAP
 x⁰
 maxit::Union{Missing,Int64}
 maxϵ::Union{Float64, Missing}
 keephistory::Bool 
 snapshots::Array{Int64}
+β::Union{Float64, Missing}
 end
 
-APparam() = APparam(missing,missing,missing, false, Int64[])
+DRAPparam() = DRAPparam(missing,missing,missing, false, Int64[],missing)
 
-initial(alg::APparam) = alg.x⁰
-tolerance(alg::APparam) = alg.maxϵ
-maxit(alg::APparam) = alg.maxit
-keephistory(alg::APparam) = alg.keephistory
-snapshots(alg::APparam) = alg.snapshots
+initial(alg::DRAPparam) = alg.x⁰
+tolerance(alg::DRAPparam) = alg.maxϵ
+maxit(alg::DRAPparam) = alg.maxit
+keephistory(alg::DRAPparam) = alg.keephistory
+snapshots(alg::DRAPparam) = alg.snapshots
 
 
 
-function solve(p::TwoSetsFP, alg::APparam, x⁰, maxϵ, maxit, keephistory::Bool, snapshots::Vector{Int64})
+function solve(p::TwoSetsFP, alg::DRAPparam, x⁰, maxϵ, maxit, keephistory::Bool, snapshots::Vector{Int64})
     A = p.A
     B = p.B
 
@@ -32,6 +37,9 @@ function solve(p::TwoSetsFP, alg::APparam, x⁰, maxϵ, maxit, keephistory::Bool
     !ismissing(x⁰) || ( x⁰ = getelement(A) )
     !ismissing(maxϵ) || (maxϵ = 1e-15)
     !ismissing(maxit) || (maxit = 100)
+
+    β = alg.β
+    !ismissing(β) || (β = 0.5)
 
     k = 0
     ϵ = Inf
@@ -41,6 +49,7 @@ function solve(p::TwoSetsFP, alg::APparam, x⁰, maxϵ, maxit, keephistory::Bool
     x̃ᵏ⁺¹ = similar(xᵏ)
     ỹᵏ = similar(xᵏ)
     yᵏ = similar(xᵏ)
+    zᵏ = similar(xᵏ)
 
     #  preallocated error vector
     err = similar(xᵏ)
@@ -62,8 +71,11 @@ function solve(p::TwoSetsFP, alg::APparam, x⁰, maxϵ, maxit, keephistory::Bool
 
     while k < maxit && ϵ > maxϵ
 
-        project!(yᵏ, xᵏ, B)
-        project!(xᵏ⁺¹, yᵏ, A)
+        # Tdrap = Pa( (1+β)Pb - β Id) - β(Pb -Id)
+        project!(yᵏ, xᵏ, B) #Pb
+        @. zᵏ = (1 + β) * yᵏ - β * xᵏ # (1+β)Pb - β Id
+        project!(xᵏ⁺¹, zᵏ, A) # Pa( (1+β)Pb - β Id)
+        @. xᵏ⁺¹ = xᵏ⁺¹ - β * (yᵏ - xᵏ)  # Pa( (1+β)Pb - β Id) - β(Pb -Id)
 
         err .= xᵏ⁺¹ .- xᵏ # This doesn't say much in infeasible case, but is OK in case of binary aperture
         # dist .= xᵏ⁺¹ .- yᵏ # this calculates true error but can stay large in case of infeasible case
@@ -85,7 +97,7 @@ function solve(p::TwoSetsFP, alg::APparam, x⁰, maxϵ, maxit, keephistory::Bool
 
     end
 
-    println("Using $(supertype(typeof(alg))):  to converge with $ϵ accuracy, it took me $k iterations")
+    println("Using $(supertype(typeof(alg))): to converge with $ϵ accuracy, it took me $k iterations")
     # if keephistory
     #     if length(snapshots) != 0
     #         return xᵏ, errhist, xhist
@@ -99,6 +111,6 @@ function solve(p::TwoSetsFP, alg::APparam, x⁰, maxϵ, maxit, keephistory::Bool
 
 end
 
-export AP, APparam
+export DRAP, DRAPparam
 
 
