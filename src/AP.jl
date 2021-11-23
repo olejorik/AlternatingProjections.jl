@@ -6,15 +6,15 @@ Project on one set, than on another, stop after fixed number of iterations or if
 """
 abstract type AP <: ProjectionsMethod end
 
-struct APparam <: AP
-x⁰
-maxit::Union{Missing,Int64}
-maxϵ::Union{Float64, Missing}
-keephistory::Bool 
-snapshots::Array{Int64}
+Base.@kwdef struct APparam <: AP
+    x⁰ = missing
+    maxϵ::Union{Float64, Missing} = missing
+    maxit::Union{Missing,Int64} = missing
+    keephistory::Bool = false
+    snapshots::Array{Int64} = Int64[]
 end
 
-APparam() = APparam(missing,missing,missing, false, Int64[])
+# APparam() = APparam(missing,missing,missing, false, Int64[])
 
 initial(alg::APparam) = alg.x⁰
 tolerance(alg::APparam) = alg.maxϵ

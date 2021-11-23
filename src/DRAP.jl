@@ -10,16 +10,16 @@ Stop after fixed number of iterations or if the desired accuracy is achieved
 """
 abstract type DRAP <: ProjectionsMethod end
 
-struct DRAPparam <: DRAP
-x⁰
-maxit::Union{Missing,Int64}
-maxϵ::Union{Float64, Missing}
-keephistory::Bool 
-snapshots::Array{Int64}
-β::Union{Float64, Missing}
+Base.@kwdef struct DRAPparam <: DRAP
+    x⁰ = missing
+    maxϵ::Union{Float64, Missing} = missing
+    maxit::Union{Missing,Int64} = missing
+    keephistory::Bool = false
+    snapshots::Array{Int64} = Int64[]
+    β::Union{Float64, Missing} = missing
 end
 
-DRAPparam() = DRAPparam(missing,missing,missing, false, Int64[],missing)
+# DRAPparam() = DRAPparam(missing,missing,missing, false, Int64[],missing)
 
 initial(alg::DRAPparam) = alg.x⁰
 tolerance(alg::DRAPparam) = alg.maxϵ

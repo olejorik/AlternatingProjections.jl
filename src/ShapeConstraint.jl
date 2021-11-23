@@ -110,27 +110,28 @@ function project!(x, feasset::ConstrainedByShapeMasked)
     return x
 end
 
-upperthreshold(a, th) = a < th ? th : a
+using Roots
 
 function project!(xp, x, feasset::ConstrainedByShapeSaturated)    
-    s = abs.(x)[feasset.mask]' * feasset.amp[feasset.mask] / feasset.n
-    # s = x[feasset.mask]' * feasset.amp[feasset.mask] / feasset.n
+    s0 = abs.(x)[feasset.mask]' * feasset.amp[feasset.mask] / feasset.n
+
+    xs = sort(abs.(x[feasset.sat]))
+    function rp(s)
+        j = searchsortedlast(xs,s)
+        return (s - s0) * feasset.n + j*s - sum(xs[1:j])
+    end
+    # println(s0, extrema(xs)) # debug
+    smin, smax = extrema(xs)
+    sopt = find_zero(rp,(min(smin,s0), max(smax,s0)))
+
     @inbounds for i in feasset.mask
-        xp[i] = update_amplitude(s * feasset.amp[i], x[i])
+        xp[i] = update_amplitude(sopt * feasset.amp[i], x[i])
     end
     @inbounds for i in feasset.sat
-        xp[i] = update_amplitude(upperthreshold.(abs(x[i]),s), x[i])
+        xp[i] = update_amplitude(max.(abs(x[i]),sopt), x[i])
     end
+
     return xp
 end
 
-function project!(x, feasset::ConstrainedByShapeSaturated)    
-    s = abs.(x)[feasset.mask]' * feasset.amp[feasset.mask] / feasset.n
-    @inbounds for i in feasset.mask
-        x[i] = update_amplitude(s * feasset.amp[i], x[i])
-    end
-    @inbounds for i in feasset.sat
-        x[i] = update_amplitude(upperthreshold.(abs(x[i]),s), x[i])
-    end
-    return x
-end
+project!(x, feasset::ConstrainedByShapeSaturated) = project!(x, x, feasset)

@@ -7,15 +7,15 @@ Stop after fixed number of iterations or if the desired accuracy is achieved
 """
 abstract type DR <: ProjectionsMethod end
 
-struct DRparam <: DR
-x⁰
-maxit::Union{Missing,Int64}
-maxϵ::Union{Float64, Missing}
-keephistory::Bool 
-snapshots::Array{Int64}
+Base.@kwdef struct DRparam <: DR
+    x⁰ = missing
+    maxϵ::Union{Float64, Missing} = missing
+    maxit::Union{Missing,Int64} = missing
+    keephistory::Bool = false
+    snapshots::Array{Int64} = Int64[]
 end
 
-DRparam() = DRparam(missing,missing,missing, false, Int64[])
+# DRparam() = DRparam(missing,missing,missing, false, Int64[])
 
 initial(alg::DRparam) = alg.x⁰
 tolerance(alg::DRparam) = alg.maxϵ

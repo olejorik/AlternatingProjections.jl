@@ -8,9 +8,8 @@ Alternating Projections methods, first try
 """
 AlternatingProjections
 
-Module contains types describing different feasible sets and corresponding projection methods on them.
-Being an auto-pedagogical package, it explorers the possibilities, for instance, adding more functionality
-by describing a new type of FeasibleSets in a new separate file and tries not to be perfect.
+Module contains types and functions for formulation and solving feasibility problem
+    using projections-based methods.
 """
 module AlternatingProjections
 
@@ -18,87 +17,54 @@ using LinearAlgebra
 using FFTW
 import Base.size # to add size method for FeasibleSet's subtypes
 
-"""
-Abstract type containing any algorithm
-"""
-abstract type Algorithm end
+include("AbstractProblems.jl")
+export Problem, Algorithm, IterativeAlgorithm, solve 
 
-# Problems :-)
-abstract type Problem end
+export ProjectionsMethod, FeasibleSet, FeasibilityProblem, project, project!, reflect, reflect!, ConvexSet, apsolve, TwoSetsFP, TransformedSet, LinearTransformedSet,
+FourierTransformedSet, forward!, backward!, generatingset
+
 
 
 # Common type of a problem is feasibility problem, for which we need to introduce concept of
 # a feasuible set
-
 """
     FeasibleSet
 
-Abstract type representing a set for feasibility problem. For any set we should be able to take it's representative element.
+Abstract type representing a set for feasibility problem. 
+    For any set we should be able to take it's representative element.
+
+    Fro any concrete subtype, we define a project operator (maybe set-valued) to be defined.
+
 """
 abstract type FeasibleSet end
 
 getelement(s::FeasibleSet) = error("Don't know how to take an element of $typeof(s)")
 
+"""
+Big class of feasibility problems./
+"""
 abstract type FeasibilityProblem <: Problem end
+
+"""
+    TwoSetsFP(A,B)
+
+Two sets feasibility problem: for given sets A and B find x∈A∩B, if A∩B≠∅, or x∈A closest to B in some sense.
+
+"""
 struct TwoSetsFP <: FeasibilityProblem
     A::FeasibleSet
     B::FeasibleSet
 end
 
 
-"""
-    solve(p::Problem,x⁰,alg::Algorithm)
-
-    solve(p::Problem,alg::IterativeAlgorithm; x⁰, ϵ, maxit, keephistory, snapshshots)
-
-
-Solve problem `p`, using method `alg`. For iterative algorithms the arguments maybe specified 
-Optionally keep the error history and the iteration snapshots.
-
-
-
-# Examples
-
-```jldoctest
-julia>
-```
-"""
-function solve(p::Problem, alg::Algorithm)
-    error("Don't know how to solve ", typeof(p), " with method ", typeof(alg))
-end
-
 
 """
-Iterative methods form an important class of algorithms with iteratively adjust solution.
+    ConvexSet
 
-Concrete types of the `IterativeAlgorithm` should contain the initial value, tolerance and maximum number of iterations and 
-are used more for convenience. These can be obtained by fucntions `initial`, `tolerance`, `maxit` fuctions. If applied the
-abstract types, these fucntions return `missing` and can trigger using of the default values.
-
-In addition, the concrete types contain instructions on whether or not to keeep the history of the convergence and 
-some snapshots of the inner state of an iterator. These values are given by functions `keephistory` and `snapshots`.
+General type, no projection method is specified. For a convex set a projection is unique.
 
 """
-abstract type IterativeAlgorithm <: Algorithm end
-
-initial(alg::IterativeAlgorithm) = missing
-tolerance(alg::IterativeAlgorithm) = missing
-maxit(alg::IterativeAlgorithm) = missing
-keephistory(alg::IterativeAlgorithm) = false
-snapshots(alg::IterativeAlgorithm) = Int64[]
-
-"""
-ProjectionsMethod is class of iterative algorithms for solving feasibility problems based on projections on the feasible sets.
-    Examples are Alternating Projections (AP), also known in the literature as Projections on the Convex Sets (POCS),
-    Douglas-Rachford algorithm (DR), their combination DRAP and many others.
-
-"""
-abstract type  ProjectionsMethod <: IterativeAlgorithm end
-
-include("AP.jl")
-include("DR.jl")
-include("DRAP.jl")
-
+abstract type ConvexSet <: FeasibleSet end
 
 
 # Projections
@@ -146,42 +112,29 @@ reflect(x, feasset::FeasibleSet) = 2 * project(x, feasset) - x
 
 
 
+
 """
-    ConvexSet
+ProjectionsMethod is class of iterative algorithms for solving feasibility problems based on projections on the feasible sets.
+    Examples are Alternating Projections (AP), also known in the literature as Projections on the Convex Sets (POCS),
+    Douglas-Rachford algorithm (DR), their combination DRAP and many others.
 
-General type, no projection method is specified.
-
-# Examples
-
-```jldoctest
-```
 """
-abstract type ConvexSet <: FeasibleSet end
+abstract type  ProjectionsMethod <: IterativeAlgorithm end
+
+include("AP.jl")
+include("DR.jl")
+include("DRAP.jl")
+
+
+
 
 include("TransformedSet.jl")
-
-
-
-
-#unpack the values of iterative algorithm
-solve(p::Problem, alg::IterativeAlgorithm; x⁰ = initial(alg), ϵ =tolerance(alg), maxit = maxit(alg), keephistory = keephistory(alg), snapshots = snapshots(alg)) = solve(p, alg, x⁰, ϵ, maxit, keephistory, snapshots)
-# solve(p::Problem, alg::IterativeAlgorithm) = solve(p, alg, initial(alg), tolerance(alg), maxit(alg), keephistory(alg), snapshots(alg))
-
-# Now proceed with the unpacked default or specified by the user values
-function solve(p::Problem, alg::IterativeAlgorithm,  args...) 
-    error("Don't know how to solve ", typeof(p), " with method ", typeof(alg))
-end
-
-
-export ProjectionsMethod, FeasibleSet, project, project!, reflect, reflect!, ConvexSet, apsolve,solve, TwoSetsFP, TransformedSet, LinearTransformedSet,
-FourierTransformedSet, forward!, backward!, generatingset
 
 # Constraints
 include("SupportConstraint.jl")
 include("AmplitudeConstraint.jl")
 
-# algortihms
-# include("GerchbergSaxton.jl")
+
 
 # Iterators
 include("iterators.jl")
