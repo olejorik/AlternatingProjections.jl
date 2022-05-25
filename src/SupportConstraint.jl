@@ -1,5 +1,9 @@
 abstract type SupportConstrained <: ConvexSet end
 
+amp(s::SupportConstrained) = s.support #|| error("amplitude is not defined for $(typeof(s))")
+getelement(s::SupportConstrained) = complex(float(amp(s))) # element of the set is a complex array
+
+
 """
 #   ConstrainedBySupport(support)
 
@@ -72,5 +76,44 @@ function project!(xp, x, feasset::ConstrainedBySupport)
         xp[i] = feasset.support[i] * x[i]
     end
 
+    return xp
+end
+
+"""
+ConstrainedBySupportNormed(support, norm) is a set represented by intersection of the 
+    ConstrainedBySupport(support) set and a hypersphere of radius norm.
+
+    # Examples
+
+    ```jldoctest
+    
+    julia> a = rand((1,10),(5,5));
+    julia> mask = a .> 5;
+    julia> aset= ConstrainedBySupportNormed(mask, 10)
+    ConstrainedBySupportNormed(Bool[1 0 … 0 0; 0 0 … 1 0; … ; 1 0 … 0 1; 0 0 … 1 1], 10.0)
+    
+    julia> b = project(Float64.(a), aset)
+
+    julia> sum(abs2,b) ≈ 10^2
+    true
+
+"""
+struct ConstrainedBySupportNormed <: SupportConstrained
+    support::Array{Bool}
+    n::Float64
+end
+export ConstrainedBySupportNormed
+
+# function project(x, feasset::ConstrainedBySupport)
+#     return feasset.support .* x
+# end
+
+function project!(xp, x, feasset::ConstrainedBySupportNormed)
+    @inbounds for i in eachindex(xp)
+        xp[i] = feasset.support[i] * x[i]
+    end
+
+    normratio = feasset.n / sqrt(sum(abs2,xp)) 
+    xp .*= normratio
     return xp
 end
