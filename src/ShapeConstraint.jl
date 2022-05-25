@@ -73,6 +73,25 @@ ConstrainedByShapeSaturated(a, m::AbstractArray{Bool}) = ConstrainedByShapeSatur
 
 export ConstrainedByShapeSaturated
 
+struct ConstrainedByShapeClipped{T,N} <: AmplitudeConstrainedSet where {T <: Real, N}
+    amp::Array{T,N}  #
+    mid::Union{Vector{CartesianIndex{N}}, Vector{Int}} #because 1D arrays are indexed as Vector
+    high::Union{Vector{CartesianIndex{N}}, Vector{Int}} # complementary set to mask
+    low::Union{Vector{CartesianIndex{N}}, Vector{Int}} # complementary set to mask
+    vhigh::T
+    vlow::T
+    n::T
+end
+
+
+ConstrainedByShapeClipped(amp, mid, high, low, vhigh, vlow) = ConstrainedByShapeClipped(amp, mid, high, low, vhigh, vlow, sum(abs2,amp[mid]))
+
+ConstrainedByShapeClipped(amp, vhigh, vlow) = ConstrainedByShapeClipped(amp, findall( amp .>= vlow .&& amp .<= vhigh),findall( amp .>= vhigh),findall( amp .<= vlow ), vhigh, vlow)
+
+
+
+export ConstrainedByShapeClipped
+
 
 
 function project!(xp, x, feasset::ConstrainedByShape)
@@ -135,3 +154,53 @@ function project!(xp, x, feasset::ConstrainedByShapeSaturated)
 end
 
 project!(x, feasset::ConstrainedByShapeSaturated) = project!(x, x, feasset)
+
+function _project!(xp, x, feasset::ConstrainedByShapeClipped)    #introduced helper function to get access to sopt
+    s0 = abs.(x)[feasset.mid]' * feasset.amp[feasset.mid] / feasset.n
+    b=feasset.vhigh
+    a=feasset.vlow
+
+    xhigh = sort(abs.(x[feasset.high]))
+    xlow = sort(abs.(x[feasset.low]), rev = true)
+    function rp(s)
+        jhigh = searchsortedlast(xhigh, s*b)
+        jlow = searchsortedlast(xlow,s*a)
+        return (s - s0) * feasset.n + jhigh*s*b - sum(xhigh[1:jhigh]) - jlow*s*a + sum(xlow[1:jlow])  
+    end
+    # println(s0, extrema(xs)) # debug
+    sminhigh,smaxhigh = extrema(xhigh)
+    sminlow,smaxlow = extrema(xlow)
+    smax = maximum((s0, smaxhigh/b, smaxlow/a))
+    smin = minimum((s0, sminhigh/b, sminlow/a))
+    # smax = maximum((s0, smaxhigh/b))
+    # smin = minimum((s0, sminlow/a))
+    sopt = find_zero(rp, (smin, smax))
+
+    #debug
+    # sopt = try
+    #     find_zero(rp, (smin, smax))
+    #     # sopt = find_zero(rp, (0, smax))
+    #     # sopt = find_zero(rp, s0)
+    # catch e
+    #     @info "s0 = $s0, smin = $smin smax = $smax"
+    #     @info "rp(s0) = $(rp(s0)), rp(smin) = $(rp(smin)) rp(smax) = $(rp(smax))"
+    #     s0
+    # end
+
+
+    @inbounds for i in feasset.mid
+        xp[i] = update_amplitude(sopt * feasset.amp[i], x[i])
+    end
+    @inbounds for i in feasset.low
+        xp[i] = update_amplitude(min.(abs(x[i]),sopt * a), x[i])
+    end
+    @inbounds for i in feasset.high
+        xp[i] = update_amplitude(max.(abs(x[i]),sopt * b), x[i])
+    end
+
+    return xp, sopt
+end
+
+project!(xp, x, feasset::ConstrainedByShapeClipped) = _project!(xp, x, feasset)[1]
+
+project!(x, feasset::ConstrainedByShapeClipped) = project!(x, x, feasset)
