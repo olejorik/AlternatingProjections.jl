@@ -33,13 +33,17 @@ function solve(p::TwoSetsFP, alg::DRAPparam, x⁰, maxϵ, maxit, keephistory::Bo
     A = p.A
     B = p.B
 
+    # quick fix to be compatible with scaling-free problems
+    nA = sqrt(sum(abs2,amp(A)))
+
+
     # process the default parameters
     !ismissing(x⁰) || ( x⁰ = getelement(A) )
     !ismissing(maxϵ) || (maxϵ = 1e-15)
     !ismissing(maxit) || (maxit = 100)
 
     β = alg.β
-    !ismissing(β) || (β = 0.5)
+    !ismissing(β) || (β = 0.9)
 
     k = 0
     ϵ = Inf
@@ -73,9 +77,21 @@ function solve(p::TwoSetsFP, alg::DRAPparam, x⁰, maxϵ, maxit, keephistory::Bo
 
         # Tdrap = Pa( (1+β)Pb - β Id) - β(Pb -Id)
         project!(yᵏ, xᵏ, B) #Pb
+
+        nPb = sqrt(sum(abs2,yᵏ))
+        yᵏ .*= (nA/nPb) #quick fix
+        
         @. zᵏ = (1 + β) * yᵏ - β * xᵏ # (1+β)Pb - β Id
         project!(xᵏ⁺¹, zᵏ, A) # Pa( (1+β)Pb - β Id)
         @. xᵏ⁺¹ = xᵏ⁺¹ - β * (yᵏ - xᵏ)  # Pa( (1+β)Pb - β Id) - β(Pb -Id)
+
+        # quick fix, to be changed as representative
+        # removepiston
+        cpiston = sum(xᵏ⁺¹)
+        # cpiston = xᵏ⁺¹[1]
+        cpiston /= abs(cpiston)
+        # @info "Cpiston = $cpiston, angle = $(angle(cpiston))"
+        xᵏ⁺¹ ./= cpiston
 
         err .= xᵏ⁺¹ .- xᵏ # This doesn't say much in infeasible case, but is OK in case of binary aperture
         # dist .= xᵏ⁺¹ .- yᵏ # this calculates true error but can stay large in case of infeasible case

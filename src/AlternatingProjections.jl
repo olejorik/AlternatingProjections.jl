@@ -38,7 +38,7 @@ Abstract type representing a set for feasibility problem.
 """
 abstract type FeasibleSet end
 
-getelement(s::FeasibleSet) = error("Don't know how to take an element of $typeof(s)")
+getelement(s::FeasibleSet) = error("Don't know how to take an element of $(typeof(s))")
 
 """
 Big class of feasibility problems./
