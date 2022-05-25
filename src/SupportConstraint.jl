@@ -102,6 +102,8 @@ struct ConstrainedBySupportNormed <: SupportConstrained
     support::Array{Bool}
     n::Float64
 end
+
+ConstrainedBySupportNormed(support::Array{T} where T <: AbstractFloat) = ConstrainedBySupportNormed(support .> 0, sqrt(sum(abs2,support)))
 export ConstrainedBySupportNormed
 
 # function project(x, feasset::ConstrainedBySupport)
