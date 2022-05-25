@@ -52,10 +52,23 @@ solve(p::Problem, alg::Algorithm) = error("Don't know how to solve ", typeof(p),
 #unpack the values of iterative algorithm
 solve(p::Problem, alg::IterativeAlgorithm; x⁰ = initial(alg), ϵ =tolerance(alg), maxit = maxit(alg), keephistory = keephistory(alg), snapshots = snapshots(alg)) = solve(p, alg, x⁰, ϵ, maxit, keephistory, snapshots)
 # solve(p::Problem, alg::IterativeAlgorithm) = solve(p, alg, initial(alg), tolerance(alg), maxit(alg), keephistory(alg), snapshots(alg))
+#  unpack for several algorithms
+solve(p::Problem, algs::Tuple{Vararg{IterativeAlgorithm}}; x⁰ = initial(algs[1]), ϵ =tolerance(algs[1]), maxit = maxit(algs[1]), keephistory = keephistory(algs[1]), snapshots = snapshots(algs[1])) = solve(p, algs, x⁰, ϵ, maxit, keephistory, snapshots)
+# for one tuple just call algorithm
+solve(p::Problem, algs::Tuple{Vararg{IterativeAlgorithm,1}}; x⁰ = initial(algs[1]), ϵ =tolerance(algs[1]), maxit = maxit(algs[1]), keephistory = keephistory(algs[1]), snapshots = snapshots(algs[1])) = solve(p, algs[1], x⁰, ϵ, maxit, keephistory, snapshots)
 
 # Now proceed with the unpacked default or specified by the user values
 function solve(p::Problem, alg::IterativeAlgorithm,  args...) 
     error("Don't know how to solve ", typeof(p), " with method ", typeof(alg))
+end
+
+# two algorithms
+function solve(p::Problem, algs::Tuple{Vararg{IterativeAlgorithm}},  args...) 
+    sol1= solve(p, algs[1], args...)
+    # and continue with the last value
+    sol2 = solve(p, algs[2:end], x⁰ = sol1[1])
+    sol =(sol2[1], (lasty = sol2[2][:lasty], errhist = [sol1[2][:errhist]; sol2[2][:errhist]], xhist = [sol1[2][:xhist];sol2[2][:xhist]],k = sol1[2][:k] + sol2[2][:k]))
+    return sol
 end
     
 end
