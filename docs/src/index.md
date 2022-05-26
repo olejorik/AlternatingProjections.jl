@@ -65,9 +65,9 @@ such that
     - Gerchberg-Saxton
     - *Vector Gerchberg-Saxton*
     - *Gerchberg-Papoulis*
-    - TIP
-    - *Douglas–Rachford*
-    - *DRAP*
+    - *TIP*
+    - Douglas–Rachford
+    - DRAP
     
 [^1]: not implemented features are shown with italics
     
