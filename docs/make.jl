@@ -1,7 +1,7 @@
 using Pkg
 cd(@__DIR__)
 Pkg.activate(".")
-pkg"dev ..\\..\\AlternatingProjections\\"
+# pkg"dev ..\\..\\AlternatingProjections\\"
 push!(LOAD_PATH,"../src/")
 using AlternatingProjections
 using Documenter
