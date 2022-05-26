@@ -3,4 +3,4 @@ AlternatingProjections = "37589ef0-cc9c-11e9-2e35-d5d8b7f5a2df"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 
 [compat]
-Documenter = "~0.23"
+Documenter = "~0.27"

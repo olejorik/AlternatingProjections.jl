@@ -1,11 +1,12 @@
 """
-DRAP <: ProjectionsMethod
-Douglas-Rachford method
+    DRAP <: ProjectionsMethod
+
+Douglas-Rachford and Alternating Projection method
 
 Combination of DR and AP method (see [1]).
 Stop after fixed number of iterations or if the desired accuracy is achieved
 
-    [1] Nguyen Hieu Thao, Oleg Soloviev, and Michel Verhaegen. Convex combination of alternating
+[1] Nguyen Hieu Thao, Oleg Soloviev, and Michel Verhaegen. Convex combination of alternating
     projection and Douglas-Rachford operators for phase retrieval. Adv. Comput. Math.
 """
 abstract type DRAP <: ProjectionsMethod end

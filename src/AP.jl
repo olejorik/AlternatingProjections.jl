@@ -1,8 +1,9 @@
 """
-AP <: ProjectionsMethod
-Classical Alternating projection method
+    AP <: ProjectionsMethod
 
-Project on one set, than on another, stop after fixed number of iterations or if the desired accuracy is achieved
+Classical Alternating Projections method
+
+Project on one set, than on another, stop after fixed number of iterations or if the desired accuracy is achieved.
 """
 abstract type AP <: ProjectionsMethod end
 

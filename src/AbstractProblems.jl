@@ -30,10 +30,39 @@ some snapshots of the inner state of an iterator. These values are given by func
 """
 abstract type IterativeAlgorithm <: Algorithm end
 
+"""
+    initial(alg::IterativeAlgorithm)
+
+Get the inital value of  iterative algorithm `alg`.
+"""
 initial(alg::IterativeAlgorithm) = missing
+
+"""
+    tolerance(alg::IterativeAlgorithm)::Float64
+
+Get the tolerance value used as stopping criterium of iterative algorithm `alg`.
+"""
 tolerance(alg::IterativeAlgorithm) = missing
+
+"""
+    maxit(alg::IterativeAlgorithm)::Int
+
+Get the maximum number of iterations used as stopping criterium of iterative algorithm `alg`.
+"""
 maxit(alg::IterativeAlgorithm) = missing
+
+"""
+    keephistory(alg::IterativeAlgorithm)::Bool
+
+If set, iterative algorithm `alg` will keep the history of the error values (distances between subsequent states).
+"""
 keephistory(alg::IterativeAlgorithm) = false
+
+"""
+    snapshots(alg::IterativeAlgorithm)::Array{Int64}
+
+Get the list of the iteration numbers, for which iterative algorithm `alg` will keep the state.
+"""
 snapshots(alg::IterativeAlgorithm) = Int64[]
 
 
@@ -41,10 +70,14 @@ snapshots(alg::IterativeAlgorithm) = Int64[]
     solve(p::Problem,x⁰,alg::Algorithm)
 
     solve(p::Problem,alg::IterativeAlgorithm; x⁰, ϵ, maxit, keephistory, snapshshots)
+    
+    solve(p::Problem,(alg1, alg2,...); x⁰, ϵ, maxit, keephistory, snapshshots)
 
 
 Solve problem `p`, using method `alg`. For iterative algorithms the arguments may be specified separately.
 Optionally keep the error history and the iteration snapshots.
+
+If sequence of the iterative algorithms is given, they are run subsequently, using the last state of the previous algorith as the inital value.
 
 """
 solve(p::Problem, alg::Algorithm) = error("Don't know how to solve ", typeof(p), " with method ", typeof(alg))
@@ -62,7 +95,7 @@ function solve(p::Problem, alg::IterativeAlgorithm,  args...)
     error("Don't know how to solve ", typeof(p), " with method ", typeof(alg))
 end
 
-# two algorithms
+# several algorithms
 function solve(p::Problem, algs::Tuple{Vararg{IterativeAlgorithm}},  args...) 
     sol1= solve(p, algs[1], args...)
     # and continue with the last value

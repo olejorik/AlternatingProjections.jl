@@ -33,7 +33,7 @@ FourierTransformedSet, forward!, backward!, generatingset
 Abstract type representing a set for feasibility problem. 
     For any set we should be able to take it's representative element.
 
-    Fro any concrete subtype, we define a project operator (maybe set-valued) to be defined.
+For any concrete subtype, we define a project operator (maybe set-valued).
 
 """
 abstract type FeasibleSet end

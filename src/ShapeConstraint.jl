@@ -134,14 +134,18 @@ using Roots
 function project!(xp, x, feasset::ConstrainedByShapeSaturated)    
     s0 = abs.(x)[feasset.mask]' * feasset.amp[feasset.mask] / feasset.n
 
-    xs = sort(abs.(x[feasset.sat]))
-    function rp(s)
-        j = searchsortedlast(xs,s)
-        return (s - s0) * feasset.n + j*s - sum(xs[1:j])
+    if size(feasset.sat) == (0,)
+        sopt= s0
+    else
+        xs = sort(abs.(x[feasset.sat]))
+        function rp(s)
+            j = searchsortedlast(xs,s)
+            return (s - s0) * feasset.n + j*s - sum(xs[1:j])
+        end
+        # println(s0, extrema(xs)) # debug
+        smin, smax = extrema(xs)
+        sopt = find_zero(rp,(min(smin,s0), max(smax,s0)))
     end
-    # println(s0, extrema(xs)) # debug
-    smin, smax = extrema(xs)
-    sopt = find_zero(rp,(min(smin,s0), max(smax,s0)))
 
     @inbounds for i in feasset.mask
         xp[i] = update_amplitude(sopt * feasset.amp[i], x[i])

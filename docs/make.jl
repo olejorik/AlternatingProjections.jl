@@ -1,4 +1,12 @@
-using Documenter, AlternatingProjections
+using Pkg
+cd(@__DIR__)
+Pkg.activate(".")
+pkg"dev ..\\..\\AlternatingProjections\\"
+push!(LOAD_PATH,"../src/")
+using AlternatingProjections
+using Documenter
+
+DocMeta.setdocmeta!(AlternatingProjections, :DocTestSetup, :(using AlternatingProjections); recursive=true)
 
 makedocs(sitename="AlternatingProjections.jl",
     modules = [AlternatingProjections],
@@ -10,7 +18,12 @@ makedocs(sitename="AlternatingProjections.jl",
         # highlights = ["yaml"],
     ),
     clean = false,
-    authors = "O.S.",)
+    authors = "O.S.",
+    pages = [
+        "Home" => "index.md",
+        "Second purpose of this package" => "methodology.md"
+    ]
+)
 
 # using DocumenterLaTeX
 # makedocs(

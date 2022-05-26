@@ -5,7 +5,7 @@ getelement(s::SupportConstrained) = complex(float(amp(s))) # element of the set 
 
 
 """
-#   ConstrainedBySupport(support)
+    ConstrainedBySupport(support)
 
 Special type of convex set.
 
@@ -17,49 +17,33 @@ For discrete case: all arrays that equals zero for indexes outside some index se
 
 Currently supports only discrete case, with the support defined as a boolean array.
 
-- Julia version: 
-- Author: Oleg Soloviev
-- Date: 2019-09-01
-
 # Examples
 
 ```jldoctest
-
 julia> S =  ConstrainedBySupport([true, false,true])
-ConstrainedBySupport(Bool[true, false, true])
+ConstrainedBySupport(Bool[1, 0, 1])
 
 julia> x = [1, 2, 3]; project(x, S)
-3-element Array{Int64,1}:
+3-element Vector{Int64}:
  1
  0
  3
 
-julia> S = ConstrainedBySupport([x^2 + y^2 <=1  for x in -2:.2:2, y in -2:.2:2]);
-julia> x = ones(size(S.support));
-julia> project(x,S)
-21×21 Array{Float64,2}:
- 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
- 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+julia> S = ConstrainedBySupport([x^2 + y^2 <=1  for x in -2:.5:2, y in -2:.5:2]);
 
+julia> x = ones(size(S.support));
+
+julia> project(x,S)
+9×9 Matrix{Float64}:
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  1.0  1.0  1.0  0.0  0.0  0.0
+ 0.0  0.0  1.0  1.0  1.0  1.0  1.0  0.0  0.0
+ 0.0  0.0  0.0  1.0  1.0  1.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  1.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
+ 0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0  0.0
 ```
 """
 struct ConstrainedBySupport <: SupportConstrained
@@ -80,22 +64,25 @@ function project!(xp, x, feasset::ConstrainedBySupport)
 end
 
 """
-ConstrainedBySupportNormed(support, norm) is a set represented by intersection of the 
-    ConstrainedBySupport(support) set and a hypersphere of radius norm.
+    ConstrainedBySupportNormed(support, norm)
 
-    # Examples
+`ConstrainedBySupportNormed(support, norm)` is a set represented by intersection of the 
+`ConstrainedBySupport(support)` set and a hypersphere of radius `norm`.
 
-    ```jldoctest
-    
-    julia> a = rand((1,10),(5,5));
-    julia> mask = a .> 5;
-    julia> aset= ConstrainedBySupportNormed(mask, 10)
-    ConstrainedBySupportNormed(Bool[1 0 … 0 0; 0 0 … 1 0; … ; 1 0 … 0 1; 0 0 … 1 1], 10.0)
-    
-    julia> b = project(Float64.(a), aset)
+# Examples
 
-    julia> sum(abs2,b) ≈ 10^2
-    true
+```jldoctest
+julia>  a = rand((1,10),(5,5));
+
+julia> mask = a .> 5;
+
+julia> aset= ConstrainedBySupportNormed(mask, 10);
+
+julia> b = project(Float64.(a), aset);
+
+julia> sum(abs2,b) ≈ 10^2
+true
+```
 
 """
 struct ConstrainedBySupportNormed <: SupportConstrained

@@ -1,8 +1,9 @@
 """
-DR <: ProjectionsMethod
+    DR <: ProjectionsMethod
+
 Douglas-Rachford method
 
-Reflect with respect one set, than to another and move there halfway: x → (x + R₂R₁x)/2
+Reflect with respect one set, than to another and move there halfway: `x → (x + R₂R₁x)/2`.
 Stop after fixed number of iterations or if the desired accuracy is achieved
 """
 abstract type DR <: ProjectionsMethod end
