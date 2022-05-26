@@ -1,5 +1,9 @@
 # AlternatingProjections.jl
 
+| **Documentation**                                                               |                                                                          
+|:-------------------------------------------------------------------------------:|
+| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | 
+
 _A small project started as test of whether it is indeed as easy as advertised to translate algorithms from their mathematical description to Julia language._
 
 Several simple alternating projection algorithms are planned for implementation:
@@ -35,3 +39,9 @@ To build documentation, cd to `docs` folder and run `julia make.jl`
 
 ### Owner
 Oleg Soloviev, o.a.soloviev@tudelft.nl
+
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://olejorik.github.io/AlternatingProjections.jl/dev/
+
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://olejorik.github.io/AlternatingProjections.jl/latest/
