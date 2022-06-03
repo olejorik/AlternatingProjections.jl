@@ -40,6 +40,31 @@ end
 # end
 export ConstrainedByAmplitude
 
+
+"""
+    ACset{T,N,M,K}(amp,projdims) 
+
+Constructs an extended version of the AmplitudeCosntrained set. Here, `amp` can be a tuple
+of amplitudes, and `projdims` are the dimeshoins, along with the length of the vector is measured.
+
+TODO extend description
+"""
+struct ACset{T,N,M,K} <: AmplitudeConstrainedSet where {T <: Real, N,M,K}
+    amp::NTuple{M,Array{T,N}} # tuple of arrays; TODO expand to more dimesnions via array? Array{Array{T,N},M} #
+    projdims::NTuple{K, Int} # dimensions along which the projection is made
+end
+
+amp(s::ACset) = s.amp
+projdims(s::ACset) = s.projdims
+
+function ACset(amp::NTuple{M, AbstractArray{T,N}})  where {M,T,N}
+    ACset{T,N,M,0}(amp, ())
+end
+
+ACset(amp::AbstractArray{T,N}, dims...)  where {T,N,K} =   ACset((amp,), dims...)
+
+export ACset
+
 """
     ConstrainedByAmplitudeMasked(a, mask::Vector{CartesianIndex{N}})
     ConstrainedByAmplitudeMasked(a, AbstractArray{Bool})

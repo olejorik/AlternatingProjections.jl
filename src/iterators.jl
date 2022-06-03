@@ -34,6 +34,90 @@ end
 
 Iterators.IteratorSize(::APiterator) = Iterators.IsInfinite()
 
+#= 
+A simple (and in the same time the most general) iterator based on repetion of some function or operator
+=#
+
+"""
+    Opiterator1(x⁰, f)  
+
+Create a simple iteration with operator `f` and inital value `x⁰`.
+
+# Examples
+
+```jldoctest
+julia> ttt = Opiterator([3], x -> x .+ 2)
+AlternatingProjections.Opiterator1{Vector{Int64}}([3], var"#11#12"())
+
+julia> for state in Base.Iterators.take(ttt,5)
+       println(state.xᵏ[1])
+       end
+5
+7
+9
+11
+13
+
+julia> ttt20 = Iterators.take(ttt,20);
+
+julia> for state in ttt20
+       print(state.xᵏ[1])
+       end
+5791113151719212325272931333537394143
+```
+
+## Example with Images.jl
+```
+julia> using Images
+
+julia> img = Gray.(rand(Float64, (256,256)))
+
+julia> blurop = Opiterator(img, x -> imfilter(x, Kernel.gaussian(2)));
+
+julia> blurop20 = Iterators.take(blurop, 20);
+
+julia> mosaic([copy(b.xᵏ⁻¹) for b in blurop20]; nrow=4, rowmajor = true)
+```
+
+
+"""
+struct Opiterator1{TX}  # where TX
+    x⁰::TX
+    f::Function 
+end
+
+Opiterator = Opiterator1
+
+
+mutable struct Opstate1{TX}  # where TX
+    xᵏ⁻¹::TX
+    xᵏ::TX
+end
+
+Opstate = Opstate1
+
+function iterate(iter::Opiterator) 
+    # state = Opstate(copy(iter.x⁰), project(iter.x⁰,iter.setB), project(project(iter.x⁰,iter.setB),iter.setA))
+    if iter.x⁰ === nothing error("intial value is required for $iter")
+    else 
+        x0 = copy(iter.x⁰)
+        x1 = copy(iter.x⁰)
+    end
+    x1 .= iter.f(x0)
+    state = Opstate(x0, x1)
+    return state, state 
+end
+
+function iterate(iter::Opiterator, state::Opstate)
+    state.xᵏ⁻¹ .= state.xᵏ
+    state.xᵏ .= iter.f(state.xᵏ⁻¹)
+    return state, state
+end
+
+Iterators.IteratorSize(::Opiterator) = Iterators.IsInfinite()
+
+export Opstate, Opiterator
+
 # wrappers (see https://lostella.github.io/2018/07/25/iterative-methods-done-right.html)
 
 struct HaltingIterable{I, F}

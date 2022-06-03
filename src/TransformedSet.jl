@@ -52,3 +52,8 @@ fplan::PF
 bplan::PB
 end
 
+struct UnitaryTransformedSet{TS,T,N} <: LinearTransformedSet where {TS <: FeasibleSet,T,N}
+    set::TS
+    fplan::Array{T,N}
+    bplan::Array{T,N}
+end

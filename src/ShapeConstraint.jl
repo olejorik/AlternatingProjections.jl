@@ -129,7 +129,7 @@ function project!(x, feasset::ConstrainedByShapeMasked)
     return x
 end
 
-using Roots
+using Roots:find_zero
 
 function project!(xp, x, feasset::ConstrainedByShapeSaturated)    
     s0 = abs.(x)[feasset.mask]' * feasset.amp[feasset.mask] / feasset.n
