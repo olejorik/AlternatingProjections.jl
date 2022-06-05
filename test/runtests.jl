@@ -87,10 +87,10 @@ end
     meassat[meassat .> 1] .= 1
 
     p = project(a, measset)
-    @test p == a
+    @test p ≈ a
 
     p2 = project(meas, measset)
-    @test p2 == meas
+    @test p2 ≈ meas
 
 end
 

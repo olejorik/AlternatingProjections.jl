@@ -63,6 +63,14 @@ function project!(xp, x, feasset::ConstrainedBySupport)
     return xp
 end
 
+function project!(x, feasset::ConstrainedBySupport)
+    @inbounds for i in eachindex(x)
+        x[i] = feasset.support[i] * x[i]
+    end
+
+    return x
+end
+
 """
     ConstrainedBySupportNormed(support, norm)
 

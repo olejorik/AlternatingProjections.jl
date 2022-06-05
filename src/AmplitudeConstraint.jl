@@ -83,8 +83,8 @@ amp(s::ConstrainedByAmplitudeMasked) = s.amp
 
 
 # here the backward plan is in place
-FourierTransformedSet(s::AmplitudeConstrainedSet) = 
-    FourierTransformedSet(s, FFTW.plan_fft(getelement(s)), FFTW.plan_ifft!(getelement(s)))
+# FourierTransformedSet(s::AmplitudeConstrainedSet) = 
+#     FourierTransformedSet(s, FFTW.plan_fft(getelement(s)), FFTW.plan_ifft!(getelement(s)))
 
 function project!(xp, x, feasset::ConstrainedByAmplitude)
     # @inbounds for i in eachindex(xp)
