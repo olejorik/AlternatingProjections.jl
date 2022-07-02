@@ -87,6 +87,9 @@ function solve(p::TwoSetsFP, alg::APparam, x⁰, maxϵ, maxit, keephistory::Bool
     end
 
     println("Using $(supertype(typeof(alg))):  to converge with $ϵ accuracy, it took me $k iterations")
+    if keephistory
+        @info "The distance between the sets at the solution point is $(disthist[k])"
+    end
     # if keephistory
     #     if length(snapshots) != 0
     #         return xᵏ, errhist, xhist

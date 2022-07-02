@@ -30,12 +30,12 @@ function solve(p::TwoSetsFP, alg::DRparam, x⁰, maxϵ, maxit, keephistory::Bool
     A = p.A
     B = p.B
 
-    # quick fix to be compatible with scaling-free problems
-    if typeof(A) == ConstrainedBySupport
-        nA = sqrt(sum(abs2,A.support))
-    else
-        nA = sqrt(sum(abs2,amp(A)))
-    end
+    # # quick fix to be compatible with scaling-free problems
+    # if typeof(A) == ConstrainedBySupport
+    #     nA = sqrt(sum(abs2,A.support))
+    # else
+    #     nA = sqrt(sum(abs2,amp(A)))
+    # end
 
 
     # process the default parameters
@@ -75,20 +75,20 @@ function solve(p::TwoSetsFP, alg::DRparam, x⁰, maxϵ, maxit, keephistory::Bool
         reflect!(yᵏ, xᵏ, B)
         
         nPb = sqrt(sum(abs2,yᵏ))
-        yᵏ .*= (nA/nPb) #quick fix
+        # yᵏ .*= (nA/nPb) #quick fix
         
         reflect!(x̃ᵏ⁺¹, yᵏ, A)
         @. xᵏ⁺¹ = (x̃ᵏ⁺¹+ xᵏ) / 2 
 
-        # quick fix, to be changed as representative
-        # removepiston
-        cpiston = sum(xᵏ⁺¹)
-        # cpiston = xᵏ⁺¹[1]
-        cpiston /= abs(cpiston)
-        # @info "Cpiston = $cpiston, angle = $(angle(cpiston))"
-        xᵏ⁺¹ ./= cpiston
-        # @info "Check piston $(angle(sum(xᵏ⁺¹))) "
-        # @info "Check piston of the DC freq is  $(angle(xᵏ⁺¹[1])) "
+        # # quick fix, to be changed as representative
+        # # removepiston
+        # cpiston = sum(xᵏ⁺¹)
+        # # cpiston = xᵏ⁺¹[1]
+        # cpiston /= abs(cpiston)
+        # # @info "Cpiston = $cpiston, angle = $(angle(cpiston))"
+        # xᵏ⁺¹ ./= cpiston
+        # # @info "Check piston $(angle(sum(xᵏ⁺¹))) "
+        # # @info "Check piston of the DC freq is  $(angle(xᵏ⁺¹[1])) "
 
         err .= xᵏ⁺¹ .- xᵏ # This doesn't say much in infeasible case, but is OK in case of binary aperture
         # dist .= xᵏ⁺¹ .- yᵏ # this calculates true error but can stay large in case of infeasible case
@@ -111,6 +111,9 @@ function solve(p::TwoSetsFP, alg::DRparam, x⁰, maxϵ, maxit, keephistory::Bool
     end
 
     println("Using $(supertype(typeof(alg))): to converge with $ϵ accuracy, it took me $k iterations")
+    if keephistory
+        @info "The distance between the sets at the solution point is $(disthist[k])"
+    end
     # if keephistory
     #     if length(snapshots) != 0
     #         return xᵏ, errhist, xhist

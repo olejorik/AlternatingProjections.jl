@@ -80,7 +80,7 @@ function solve(p::TwoSetsFP, alg::DRAPparam, x⁰, maxϵ, maxit, keephistory::Bo
         project!(yᵏ, xᵏ, B) #Pb
 
         nPb = sqrt(sum(abs2,yᵏ))
-        yᵏ .*= (nA/nPb) #quick fix
+        # yᵏ .*= (nA/nPb) #quick fix
         
         @. zᵏ = (1 + β) * yᵏ - β * xᵏ # (1+β)Pb - β Id
         project!(xᵏ⁺¹, zᵏ, A) # Pa( (1+β)Pb - β Id)
@@ -98,6 +98,7 @@ function solve(p::TwoSetsFP, alg::DRAPparam, x⁰, maxϵ, maxit, keephistory::Bo
         # dist .= xᵏ⁺¹ .- yᵏ # this calculates true error but can stay large in case of infeasible case
         ϵ = LinearAlgebra.norm(err)
         xᵏ .= xᵏ⁺¹
+        # xᵏ .= xᵏ⁺¹ * nA/sqrt(sum(abs2,xᵏ⁺¹)) # quick fix 
         k += 1
 
     #         println(ϵ)
@@ -115,6 +116,9 @@ function solve(p::TwoSetsFP, alg::DRAPparam, x⁰, maxϵ, maxit, keephistory::Bo
     end
 
     println("Using $(supertype(typeof(alg))): to converge with $ϵ accuracy, it took me $k iterations")
+    if keephistory
+        @info "The distance between the sets at the solution point is $(disthist[k])"
+    end
     # if keephistory
     #     if length(snapshots) != 0
     #         return xᵏ, errhist, xhist

@@ -112,27 +112,30 @@ end
     # start with a good initial guess
     sol = solve(problem, APparam(), x⁰ = x + 1.5 * randn(ComplexF64, n, n), maxit = 1000)
     
-    function testsolution()
+    function testsolution(x, sol)
         phasediff = -pi .+ mod2pi.(pi .+ angle.(sol[1][1:m,1:m]) .- angle.(x[1:m,1:m]))
         phasediff .-= sum(phasediff)/m^2
         phaserms = sqrt(sum(abs2,phasediff))/m
         #phase difference can be visualised 
-        # heatmap(phasediff)
+        fig, ax, hm  =heatmap(phasediff)
+        Colorbar(fig[:, end+1], hm)
+        fig |> display
         println("phase rms = $phaserms")
         @test phaserms < 1e-6
     end
 
-    testsolution()
+    testsolution(x, sol)
 
     # and the same problem solved with DR method (it requires more iterations and other starting point)
-    sol = solve(problem, DRparam(), x⁰ = x - 1.5 * randn(ComplexF64, n, n), maxit = 3000)
+    sol = solve(problem, DRparam(), x⁰ = x + 1.5 * randn(ComplexF64, n, n), maxit = 1000)
     
-    testsolution()
+    testsolution(x, sol)
 
     # and with DRAP algoritm
-    drap = DRAPparam(missing,500,missing,true,[1],0.1)
+    # drap = DRAPparam(missing,500,missing,true,[1],0.1)
     # sol = solve(problem, drap, maxit=1000);
-    sol = solve(problem, drap, x⁰ = x + 1.5 * randn(ComplexF64, n, n), maxit=1000);
-    testsolution()
+    sol = solve(problem, DRAPparam(), x⁰ = x + 1.5 * randn(ComplexF64, n, n), maxit=1000);
+    testsolution(x, sol)
 end
+
 

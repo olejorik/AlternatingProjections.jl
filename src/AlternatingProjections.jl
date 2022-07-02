@@ -75,7 +75,7 @@ abstract type ConvexSet <: FeasibleSet end
 Project `x` on set `A` using preallocated `xp`.
 """
 function project!(xp, x, feasset::FeasibleSet)
-    error("Don't know how to project on ", typeof(feasset), "(please imlement the two-element project)")
+    error("Don't know how to project  $(typeof(x)) on ", typeof(feasset), "(please implement the two-element project)")
 end
 
 """
@@ -84,7 +84,7 @@ end
 Project `x` on set `A` and storing result in `x`.
 """
 function project!(x, feasset::FeasibleSet)
-    error("Don't know how to project on ", typeof(feasset), "(please imlement the one-element project)")
+    error("Don't know how to project $(typeof(x)) on ", typeof(feasset), "(please implement the one-element project)")
 end
 
 """

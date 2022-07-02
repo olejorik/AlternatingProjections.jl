@@ -1,5 +1,5 @@
 """
-TransformedSet
+    TransformedSet
 
 Set obtained by some transformation from a feasible set (`generatingset`).
 Should support `forward!` and `backward!` methods. 
@@ -43,7 +43,7 @@ end
 
 
 """
-AbstractAbstractLinearTransformedSet
+    AbstractLinearTransformedSet
 
 Subtype of TransformedSet where `forward` and `backward` transformations are given by multiplication 
 by forward and backward "plans" (i.e. --- precomputed matrices). 
@@ -88,6 +88,7 @@ struct FourierTransformedSet{TS,PF,PB} <: AbstractLinearTransformedSet where {TS
     bufer
 end
 
+# TODO make a flag for direction
 FourierTransformedSet(s::FeasibleSet) = 
     FourierTransformedSet(s, FFTW.plan_ifft(getelement(s)), FFTW.plan_fft(getelement(s)), getelement(s))
 

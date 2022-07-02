@@ -100,7 +100,7 @@ function solve(p::Problem, algs::Tuple{Vararg{IterativeAlgorithm}},  args...)
     sol1= solve(p, algs[1], args...)
     # and continue with the last value
     sol2 = solve(p, algs[2:end], x⁰ = sol1[1])
-    sol =(sol2[1], (lasty = sol2[2][:lasty], errhist = [sol1[2][:errhist]; sol2[2][:errhist]], xhist = [sol1[2][:xhist];sol2[2][:xhist]],k = sol1[2][:k] + sol2[2][:k]))
+    sol =(sol2[1], (lasty = sol2[2][:lasty], errhist = [sol1[2][:errhist]; sol2[2][:errhist]],  disthist = [sol1[2][:disthist]; sol2[2][:disthist]], xhist = [sol1[2][:xhist];sol2[2][:xhist]],k = sol1[2][:k] + sol2[2][:k]))
     return sol
 end
     
