@@ -205,6 +205,49 @@ function _project!(xp, x, feasset::ConstrainedByShapeClipped)    #introduced hel
     return xp, sopt
 end
 
-project!(xp, x, feasset::ConstrainedByShapeClipped) = _project!(xp, x, feasset)[1]
+function _project2!(xp, x, feasset::ConstrainedByShapeClipped)    #introduced helper function to get access to sopt
+    s0 = abs.(x)[feasset.mid]' * feasset.amp[feasset.mid] / feasset.n
+    f02 = feasset.n
+    b=feasset.vhigh
+    a=feasset.vlow
+
+    xhigh = sort(abs.(x[feasset.high]))
+    xlow = sort(abs.(x[feasset.low]))
+    g = vcat(xlow, xhigh)
+    function rp(s)
+        return (s - s0) * f02 + sum(g-> s> g ? s-g : 0, xhigh, init = 0) + sum(g-> s< g ? s-g : 0, xlow, init = 0)
+    end
+    r1(i) = rp(g[i]) 
+    i0 =  searchsortedlast(1:length(g),0, by = i-> i == 0 ? 0 : r1(i))
+    if i0 == 0
+        x0 = g[1] - 1
+        x1 = g[1]
+    elseif i0 == length(g)
+        x1 = g[i0] + 1
+        x0 = g[end]
+    else
+        x0 = g[i0]
+        x1 = g[i0+1]
+    end
+    y0 = rp(x0)
+    y1 = rp(x1)
+    λ =  y1/(y1-y0)
+    sopt = x0*λ + x1*(1-λ)
+
+
+    @inbounds for i in feasset.mid
+        xp[i] = update_amplitude(sopt * feasset.amp[i], x[i])
+    end
+    @inbounds for i in feasset.low
+        xp[i] = update_amplitude(min.(abs(x[i]),sopt * a), x[i])
+    end
+    @inbounds for i in feasset.high
+        xp[i] = update_amplitude(max.(abs(x[i]),sopt * b), x[i])
+    end
+
+    return xp, sopt
+end
+
+project!(xp, x, feasset::ConstrainedByShapeClipped) = _project2!(xp, x, feasset)[1]
 
 project!(x, feasset::ConstrainedByShapeClipped) = project!(x, x, feasset)
