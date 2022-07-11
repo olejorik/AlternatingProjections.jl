@@ -30,7 +30,7 @@ snapshots(alg::DRAPparam) = alg.snapshots
 
 
 
-function solve(p::TwoSetsFP, alg::DRAPparam, x⁰, maxϵ, maxit, keephistory::Bool, snapshots::Vector{Int64})
+function solve(p::TwoSetsFP, alg::DRAPparam, x⁰, maxϵ, maxit, keephistory::Bool, snapshots::Vector{Int64}; gtfun = nothing)
     A = p.A
     B = p.B
 
@@ -62,9 +62,15 @@ function solve(p::TwoSetsFP, alg::DRAPparam, x⁰, maxϵ, maxit, keephistory::Bo
     if keephistory
         errhist = Vector{Float64}(undef, maxit)
         disthist = Vector{Float64}(undef, maxit)
+        if !isnothing(gtfun)
+            distgthist = Vector{Float64}(undef, maxit)
+        else
+            distgthist = Float64[]
+        end
     else
         errhist = Float64[]
         disthist = Float64[]
+        distgthist = Float64[]
     end
 
     if length(snapshots) != 0
@@ -105,6 +111,9 @@ function solve(p::TwoSetsFP, alg::DRAPparam, x⁰, maxϵ, maxit, keephistory::Bo
         if keephistory
             errhist[k] = ϵ
             disthist[k] = LinearAlgebra.norm(xᵏ⁺¹ .- yᵏ)
+            if !isnothing(gtfun)
+                distgthist[k] = gtfun(xᵏ⁺¹)
+            end
         end
 
         if k ∈ snapshots
@@ -128,7 +137,7 @@ function solve(p::TwoSetsFP, alg::DRAPparam, x⁰, maxϵ, maxit, keephistory::Bo
     # else
     #     return xᵏ, Vector{Float64, (0,)}, Vector{T, (0,)}
     # end
-    return xᵏ, (lasty = yᵏ, errhist = errhist, xhist = xhist[1:j - 1], disthist = disthist, k= k)
+    return xᵏ, (lasty = yᵏ, errhist = errhist, xhist = xhist[1:j - 1], disthist = disthist, distgthist = distgthist, k= k)
 
 end
 
