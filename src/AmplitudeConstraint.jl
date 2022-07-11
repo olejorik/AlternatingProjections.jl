@@ -82,6 +82,30 @@ export ConstrainedByAmplitudeMasked
 amp(s::ConstrainedByAmplitudeMasked) = s.amp
 
 
+"""
+ConstrainedByAmplitudeSaturated(a, mask::Vector)
+ConstrainedByAmplitudeSaturated(a, AbstractArray{Bool})
+
+The amplitude constrained set only in the indexes given by mask:  `|xᵢ| =  aᵢ` for `i ∈ mask`.
+Outside the mask function should be larger than the satruation level `|xᵢ| > 1 ` for `i ∉ mask`.
+
+For this set, the amplitude should be provided in the range from 0 to 1 (1 corresponding to the saturated values).
+"""
+struct ConstrainedByAmplitudeSaturated{T,N} <: AmplitudeConstrainedSet where {T <: Real, N}
+    amp::Array{T,N}  #
+    mask::Union{Vector{CartesianIndex{N}}, Vector{Int}} #because 1D arrays are indexed as Vector
+    sat::Union{Vector{CartesianIndex{N}}, Vector{Int}} # complementary set to mask
+    n::T
+end
+
+
+ConstrainedByAmplitudeSaturated(amp, mask::Vector, sat::Vector) = ConstrainedByAmplitudeSaturated(amp, mask,sat, sum(abs2,amp[mask]))
+
+ConstrainedByAmplitudeSaturated(a, m::AbstractArray{Bool}) = ConstrainedByAmplitudeSaturated(a, findall(m), findall(.!(m)))
+
+export ConstrainedByAmplitudeSaturated
+
+
 # here the backward plan is in place
 # FourierTransformedSet(s::AmplitudeConstrainedSet) = 
 #     FourierTransformedSet(s, FFTW.plan_fft(getelement(s)), FFTW.plan_ifft!(getelement(s)))
@@ -139,6 +163,21 @@ end
 
 
 size(feasset::ConstrainedByAmplitude) = size(feasset.amp)
+
+
+function project!(xp, x, feasset::ConstrainedByAmplitudeSaturated)    
+    
+    @inbounds for i in feasset.mask
+        xp[i] = update_amplitude( feasset.amp[i], x[i])
+    end
+    @inbounds for i in feasset.sat
+        xp[i] = update_amplitude(max.(abs(x[i]),1), x[i])
+    end
+
+    return xp
+end
+
+project!(x, feasset::ConstrainedByAmplitudeSaturated) = project!(x, x, feasset)
 
 
 include("ShapeConstraint.jl")
