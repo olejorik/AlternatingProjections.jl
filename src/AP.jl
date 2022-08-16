@@ -74,14 +74,14 @@ function solve(p::TwoSetsFP, alg::APparam, x⁰, maxϵ, maxit, keephistory::Bool
 
         err .= xᵏ⁺¹ .- xᵏ # This doesn't say much in infeasible case, but is OK in case of binary aperture
         # dist .= xᵏ⁺¹ .- yᵏ # this calculates true error but can stay large in case of infeasible case
-        ϵ = LinearAlgebra.norm(err)
+        ϵ = LinearAlgebra.norm(err) / LinearAlgebra.norm(xᵏ) #relative norm
         xᵏ .= xᵏ⁺¹
         k += 1
 
     #         println(ϵ)
         if keephistory
             errhist[k] = ϵ
-            disthist[k] = LinearAlgebra.norm(xᵏ⁺¹ .- yᵏ)
+            disthist[k] = LinearAlgebra.norm(xᵏ⁺¹ .- yᵏ)  / LinearAlgebra.norm(xᵏ) #relative norm
             if !isnothing(gtfun)
                 distgthist[k] = gtfun(xᵏ⁺¹)
             end

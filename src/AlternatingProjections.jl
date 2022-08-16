@@ -18,7 +18,8 @@ using FFTW
 import Base.size # to add size method for FeasibleSet's subtypes
 
 include("AbstractProblems.jl")
-export Problem, Algorithm, IterativeAlgorithm, solve 
+export Problem, Algorithm, IterativeAlgorithm, solve,
+    solution, history, lasty, errhist, disthist, distgthist, xhist, itersteps, combinehist
 
 export ProjectionsMethod, FeasibleSet, FeasibilityProblem, project, project!, reflect, reflect!, ConvexSet, apsolve, TwoSetsFP, TransformedSet, LinearTransformedSet,
 FourierTransformedSet, forward!, backward!, generatingset

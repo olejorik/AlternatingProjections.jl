@@ -86,31 +86,33 @@ function solve(p::TwoSetsFP, alg::DRAPparam, x⁰, maxϵ, maxit, keephistory::Bo
         project!(yᵏ, xᵏ, B) #Pb
 
         nPb = sqrt(sum(abs2,yᵏ))
-        # yᵏ .*= (nA/nPb) #quick fix
+        yᵏ .*= (nA/nPb) #quick fix
         
         @. zᵏ = (1 + β) * yᵏ - β * xᵏ # (1+β)Pb - β Id
         project!(xᵏ⁺¹, zᵏ, A) # Pa( (1+β)Pb - β Id)
         @. xᵏ⁺¹ = xᵏ⁺¹ - β * (yᵏ - xᵏ)  # Pa( (1+β)Pb - β Id) - β(Pb -Id)
 
-        # quick fix, to be changed as representative
-        # removepiston
-        cpiston = sum(xᵏ⁺¹)
-        # cpiston = xᵏ⁺¹[1]
-        cpiston /= abs(cpiston)
-        # @info "Cpiston = $cpiston, angle = $(angle(cpiston))"
-        xᵏ⁺¹ ./= cpiston
+        # # quick fix, to be changed as representative
+        # # removepiston
+        # cpiston = sum(xᵏ⁺¹)
+        # # cpiston = xᵏ⁺¹[1]
+        # cpiston /= abs(cpiston)
+        # # @info "Cpiston = $cpiston, angle = $(angle(cpiston))"
+        # xᵏ⁺¹ ./= cpiston
+
+        # project!(xᵏ⁺¹, B) #experiment
 
         err .= xᵏ⁺¹ .- xᵏ # This doesn't say much in infeasible case, but is OK in case of binary aperture
         # dist .= xᵏ⁺¹ .- yᵏ # this calculates true error but can stay large in case of infeasible case
-        ϵ = LinearAlgebra.norm(err)
+        ϵ = LinearAlgebra.norm(err) / LinearAlgebra.norm(xᵏ) #relative norm
         xᵏ .= xᵏ⁺¹
-        # xᵏ .= xᵏ⁺¹ * nA/sqrt(sum(abs2,xᵏ⁺¹)) # quick fix 
+        xᵏ .= xᵏ⁺¹ * nA/sqrt(sum(abs2,xᵏ⁺¹)) # quick fix 
         k += 1
 
     #         println(ϵ)
         if keephistory
             errhist[k] = ϵ
-            disthist[k] = LinearAlgebra.norm(xᵏ⁺¹ .- yᵏ)
+            disthist[k] = LinearAlgebra.norm(xᵏ⁺¹ .- yᵏ)  / LinearAlgebra.norm(xᵏ) #relative norm
             if !isnothing(gtfun)
                 distgthist[k] = gtfun(xᵏ⁺¹)
             end
