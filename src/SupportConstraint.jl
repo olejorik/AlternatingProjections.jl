@@ -3,7 +3,6 @@ abstract type SupportConstrained <: ConvexSet end
 amp(s::SupportConstrained) = s.support #|| error("amplitude is not defined for $(typeof(s))")
 getelement(s::SupportConstrained) = complex(float(amp(s))) # element of the set is a complex array
 
-
 """
     ConstrainedBySupport(support)
 
@@ -98,7 +97,9 @@ struct ConstrainedBySupportNormed <: SupportConstrained
     n::Float64
 end
 
-ConstrainedBySupportNormed(support::Array{T} where T <: AbstractFloat) = ConstrainedBySupportNormed(support .> 0, sqrt(sum(abs2,support)))
+function ConstrainedBySupportNormed(support::Array{T} where {T<:AbstractFloat})
+    return ConstrainedBySupportNormed(support .> 0, sqrt(sum(abs2, support)))
+end
 export ConstrainedBySupportNormed
 
 # function project(x, feasset::ConstrainedBySupport)
@@ -110,7 +111,7 @@ function project!(xp, x, feasset::ConstrainedBySupportNormed)
         xp[i] = feasset.support[i] * x[i]
     end
 
-    normratio = feasset.n / sqrt(sum(abs2,xp)) 
+    normratio = feasset.n / sqrt(sum(abs2, xp))
     xp .*= normratio
     return xp
 end

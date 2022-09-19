@@ -4,7 +4,6 @@ Alternating Projections methods, first try
 - Author: Oleg Soloviev
 - Date: 2019-09-01 =#
 
-
 """
 AlternatingProjections
 
@@ -18,13 +17,36 @@ using FFTW
 import Base.size # to add size method for FeasibleSet's subtypes
 
 include("AbstractProblems.jl")
-export Problem, Algorithm, IterativeAlgorithm, solve,
-    solution, history, lasty, errhist, disthist, distgthist, xhist, itersteps, combinehist
+export Problem,
+    Algorithm,
+    IterativeAlgorithm,
+    solve,
+    solution,
+    history,
+    lasty,
+    errhist,
+    disthist,
+    distgthist,
+    xhist,
+    itersteps,
+    combinehist
 
-export ProjectionsMethod, FeasibleSet, FeasibilityProblem, project, project!, reflect, reflect!, ConvexSet, apsolve, TwoSetsFP, TransformedSet, LinearTransformedSet,
-FourierTransformedSet, forward!, backward!, generatingset
-
-
+export ProjectionsMethod,
+    FeasibleSet,
+    FeasibilityProblem,
+    project,
+    project!,
+    reflect,
+    reflect!,
+    ConvexSet,
+    apsolve,
+    TwoSetsFP,
+    TransformedSet,
+    LinearTransformedSet,
+    FourierTransformedSet,
+    forward!,
+    backward!,
+    generatingset
 
 # Common type of a problem is feasibility problem, for which we need to introduce concept of
 # a feasuible set
@@ -57,8 +79,6 @@ struct TwoSetsFP <: FeasibilityProblem
     B::FeasibleSet
 end
 
-
-
 """
     ConvexSet
 
@@ -66,7 +86,6 @@ General type, no projection method is specified. For a convex set a projection i
 
 """
 abstract type ConvexSet <: FeasibleSet end
-
 
 # Projections
 
@@ -76,7 +95,11 @@ abstract type ConvexSet <: FeasibleSet end
 Project `x` on set `A` using preallocated `xp`.
 """
 function project!(xp, x, feasset::FeasibleSet)
-    error("Don't know how to project  $(typeof(x)) on ", typeof(feasset), "(please implement the two-element project)")
+    return error(
+        "Don't know how to project  $(typeof(x)) on ",
+        typeof(feasset),
+        "(please implement the two-element project)",
+    )
 end
 
 """
@@ -85,7 +108,11 @@ end
 Project `x` on set `A` and storing result in `x`.
 """
 function project!(x, feasset::FeasibleSet)
-    error("Don't know how to project $(typeof(x)) on ", typeof(feasset), "(please implement the one-element project)")
+    return error(
+        "Don't know how to project $(typeof(x)) on ",
+        typeof(feasset),
+        "(please implement the one-element project)",
+    )
 end
 
 """
@@ -95,7 +122,6 @@ Project `x` on set `A` and return the result of projection.
 """
 project(x, feasset::FeasibleSet) = project!(copy(x), x, feasset)
 
-
 # Reflections
 """
     reflect!(xr, x, A)
@@ -103,7 +129,7 @@ project(x, feasset::FeasibleSet) = project!(copy(x), x, feasset)
 Reflect `x` on set `A` using preallocated `xp`, R(x) = 2P(x) -x, where P is projection on the set.
 """
 function reflect!(xr, x, feasset::FeasibleSet)
-    project!(xr,x,feasset)
+    project!(xr, x, feasset)
     #  xr .= 2 .* xr .- x
     @. xr = 2 * xr - x
     return xr
@@ -111,23 +137,17 @@ end
 
 reflect(x, feasset::FeasibleSet) = 2 * project(x, feasset) - x
 
-
-
-
 """
 ProjectionsMethod is class of iterative algorithms for solving feasibility problems based on projections on the feasible sets.
     Examples are Alternating Projections (AP), also known in the literature as Projections on the Convex Sets (POCS),
     Douglas-Rachford algorithm (DR), their combination DRAP and many others.
 
 """
-abstract type  ProjectionsMethod <: IterativeAlgorithm end
+abstract type ProjectionsMethod <: IterativeAlgorithm end
 
 include("AP.jl")
 include("DR.jl")
 include("DRAP.jl")
-
-
-
 
 include("TransformedSet.jl")
 
@@ -135,11 +155,7 @@ include("TransformedSet.jl")
 include("SupportConstraint.jl")
 include("AmplitudeConstraint.jl")
 
-
-
 # Iterators
 include("iterators.jl")
-
-
 
 end # module

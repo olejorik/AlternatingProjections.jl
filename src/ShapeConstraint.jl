@@ -7,7 +7,7 @@ ConstrainedByShape{T,N}
 Set of abstract arryas with elemet typ `T` and dimensions `N defined by the shape constraint `|x| = s amp` for some `s`. 
 Field n contains the sum of square of all elements.
 """
-struct ConstrainedByShape{T,N} <: AmplitudeConstrainedSet where {T <: Real, N}
+struct ConstrainedByShape{T,N} <: AmplitudeConstrainedSet where {T<:Real,N}
     amp::Array{T,N}  #
     n::T
 end
@@ -17,8 +17,8 @@ ConstrainedByShape(a::AbstractArray{T,N})
 
 Construct set defined by the shape constraint `|x| = s a` for some scaling `s`. Type and dimension of the set are inhereited from the array.
 """
-function ConstrainedByShape(a::AbstractArray{T,N}) where {T,N} 
-    ConstrainedByShape{T,N}(a, sum(a .^2))
+function ConstrainedByShape(a::AbstractArray{T,N}) where {T,N}
+    return ConstrainedByShape{T,N}(a, sum(a .^ 2))
 end
 
 # function ConstrainedByShape(a::AbstractArray{Union{T,Nothing},N}) where {T,N} 
@@ -36,19 +36,21 @@ ConstrainedByAmplitudeMasked(a, AbstractArray{Bool})
 
 The amplitude constrained set only in the indexes given by mask:  `|xᵢ| = aᵢ` for `i ∈ mask`.
 """
-struct ConstrainedByShapeMasked{T,N} <: AmplitudeConstrainedSet where {T <: Real, N}
+struct ConstrainedByShapeMasked{T,N} <: AmplitudeConstrainedSet where {T<:Real,N}
     amp::Array{T,N}  #
-    mask::Union{Vector{CartesianIndex{N}}, Vector{Int}} #because 1D arrays are indexed as Vector
+    mask::Union{Vector{CartesianIndex{N}},Vector{Int}} #because 1D arrays are indexed as Vector
     n::T
 end
 
+function ConstrainedByShapeMasked(amp, mask::Vector)
+    return ConstrainedByShapeMasked(amp, mask, sum(abs2, amp[mask]))
+end
 
-ConstrainedByShapeMasked(amp, mask::Vector) = ConstrainedByShapeMasked(amp, mask, sum(abs2,amp[mask]))
-
-ConstrainedByShapeMasked(a, m::AbstractArray{Bool}) = ConstrainedByShapeMasked(a, findall(m))
+function ConstrainedByShapeMasked(a, m::AbstractArray{Bool})
+    return ConstrainedByShapeMasked(a, findall(m))
+end
 
 export ConstrainedByShapeMasked
-
 
 """
 ConstrainedByShapeSaturated(a, mask::Vector)
@@ -59,49 +61,57 @@ Outside the mask function should be larger than the satruation level `|xᵢ| > s
 
 For this set, the amplitude should be provided in the range from 0 to 1 (1 corresponding to the saturated values).
 """
-struct ConstrainedByShapeSaturated{T,N} <: AmplitudeConstrainedSet where {T <: Real, N}
+struct ConstrainedByShapeSaturated{T,N} <: AmplitudeConstrainedSet where {T<:Real,N}
     amp::Array{T,N}  #
-    mask::Union{Vector{CartesianIndex{N}}, Vector{Int}} #because 1D arrays are indexed as Vector
-    sat::Union{Vector{CartesianIndex{N}}, Vector{Int}} # complementary set to mask
+    mask::Union{Vector{CartesianIndex{N}},Vector{Int}} #because 1D arrays are indexed as Vector
+    sat::Union{Vector{CartesianIndex{N}},Vector{Int}} # complementary set to mask
     n::T
 end
 
+function ConstrainedByShapeSaturated(amp, mask::Vector, sat::Vector)
+    return ConstrainedByShapeSaturated(amp, mask, sat, sum(abs2, amp[mask]))
+end
 
-ConstrainedByShapeSaturated(amp, mask::Vector, sat::Vector) = ConstrainedByShapeSaturated(amp, mask,sat, sum(abs2,amp[mask]))
-
-ConstrainedByShapeSaturated(a, m::AbstractArray{Bool}) = ConstrainedByShapeSaturated(a, findall(m), findall(.!(m)))
+function ConstrainedByShapeSaturated(a, m::AbstractArray{Bool})
+    return ConstrainedByShapeSaturated(a, findall(m), findall(.!(m)))
+end
 
 export ConstrainedByShapeSaturated
 
-struct ConstrainedByShapeClipped{T,N} <: AmplitudeConstrainedSet where {T <: Real, N}
+struct ConstrainedByShapeClipped{T,N} <: AmplitudeConstrainedSet where {T<:Real,N}
     amp::Array{T,N}  #
-    mid::Union{Vector{CartesianIndex{N}}, Vector{Int}} #because 1D arrays are indexed as Vector
-    high::Union{Vector{CartesianIndex{N}}, Vector{Int}} # complementary set to mask
-    low::Union{Vector{CartesianIndex{N}}, Vector{Int}} # complementary set to mask
+    mid::Union{Vector{CartesianIndex{N}},Vector{Int}} #because 1D arrays are indexed as Vector
+    high::Union{Vector{CartesianIndex{N}},Vector{Int}} # complementary set to mask
+    low::Union{Vector{CartesianIndex{N}},Vector{Int}} # complementary set to mask
     vhigh::T
     vlow::T
     n::T
 end
 
+function ConstrainedByShapeClipped(amp, mid, high, low, vhigh, vlow)
+    return ConstrainedByShapeClipped(amp, mid, high, low, vhigh, vlow, sum(abs2, amp[mid]))
+end
 
-ConstrainedByShapeClipped(amp, mid, high, low, vhigh, vlow) = ConstrainedByShapeClipped(amp, mid, high, low, vhigh, vlow, sum(abs2,amp[mid]))
-
-ConstrainedByShapeClipped(amp, vhigh, vlow) = ConstrainedByShapeClipped(amp, findall( amp .>= vlow .&& amp .<= vhigh),findall( amp .>= vhigh),findall( amp .<= vlow ), vhigh, vlow)
-
-
+function ConstrainedByShapeClipped(amp, vhigh, vlow)
+    return ConstrainedByShapeClipped(
+        amp,
+        findall(amp .>= vlow .&& amp .<= vhigh),
+        findall(amp .>= vhigh),
+        findall(amp .<= vlow),
+        vhigh,
+        vlow,
+    )
+end
 
 export ConstrainedByShapeClipped
-
-
 
 function project!(xp, x, feasset::ConstrainedByShape)
     s = abs.(x)[:]' * feasset.amp[:] / feasset.n
     @inbounds for i in eachindex(xp)
         xp[i] = update_amplitude(s * feasset.amp[i], x[i])
-        end
+    end
     return xp
 end
-
 
 function project!(x, feasset::ConstrainedByShape)
     s = abs.(x)[:]' * feasset.amp[:] / feasset.n
@@ -112,7 +122,7 @@ function project!(x, feasset::ConstrainedByShape)
     return x
 end
 
-function project!(xp, x, feasset::ConstrainedByShapeMasked)    
+function project!(xp, x, feasset::ConstrainedByShapeMasked)
     s = abs.(x)[feasset.mask]' * feasset.amp[feasset.mask] / feasset.n
     # s = x[feasset.mask]' * feasset.amp[feasset.mask] / feasset.n
     @inbounds for i in feasset.mask
@@ -121,7 +131,7 @@ function project!(xp, x, feasset::ConstrainedByShapeMasked)
     return xp
 end
 
-function project!(x, feasset::ConstrainedByShapeMasked)    
+function project!(x, feasset::ConstrainedByShapeMasked)
     s = abs.(x)[feasset.mask]' * feasset.amp[feasset.mask] / feasset.n
     @inbounds for i in feasset.mask
         x[i] = update_amplitude(s * feasset.amp[i], x[i])
@@ -129,29 +139,29 @@ function project!(x, feasset::ConstrainedByShapeMasked)
     return x
 end
 
-using Roots:find_zero
+using Roots: find_zero
 
-function project!(xp, x, feasset::ConstrainedByShapeSaturated)    
+function project!(xp, x, feasset::ConstrainedByShapeSaturated)
     s0 = abs.(x)[feasset.mask]' * feasset.amp[feasset.mask] / feasset.n
 
     if size(feasset.sat) == (0,)
-        sopt= s0
+        sopt = s0
     else
         xs = sort(abs.(x[feasset.sat]))
         function rp(s)
-            j = searchsortedlast(xs,s)
-            return (s - s0) * feasset.n + j*s - sum(xs[1:j])
+            j = searchsortedlast(xs, s)
+            return (s - s0) * feasset.n + j * s - sum(xs[1:j])
         end
         # println(s0, extrema(xs)) # debug
         smin, smax = extrema(xs)
-        sopt = find_zero(rp,(min(smin,s0), max(smax,s0)))
+        sopt = find_zero(rp, (min(smin, s0), max(smax, s0)))
     end
 
     @inbounds for i in feasset.mask
         xp[i] = update_amplitude(sopt * feasset.amp[i], x[i])
     end
     @inbounds for i in feasset.sat
-        xp[i] = update_amplitude(max.(abs(x[i]),sopt), x[i])
+        xp[i] = update_amplitude(max.(abs(x[i]), sopt), x[i])
     end
 
     return xp
@@ -161,21 +171,22 @@ project!(x, feasset::ConstrainedByShapeSaturated) = project!(x, x, feasset)
 
 function _project!(xp, x, feasset::ConstrainedByShapeClipped)    #introduced helper function to get access to sopt
     s0 = abs.(x)[feasset.mid]' * feasset.amp[feasset.mid] / feasset.n
-    b=feasset.vhigh
-    a=feasset.vlow
+    b = feasset.vhigh
+    a = feasset.vlow
 
     xhigh = sort(abs.(x[feasset.high]))
-    xlow = sort(abs.(x[feasset.low]), rev = true)
+    xlow = sort(abs.(x[feasset.low]); rev=true)
     function rp(s)
-        jhigh = searchsortedlast(xhigh, s*b)
-        jlow = searchsortedlast(xlow,s*a)
-        return (s - s0) * feasset.n + jhigh*s*b - sum(xhigh[1:jhigh]) - jlow*s*a + sum(xlow[1:jlow])  
+        jhigh = searchsortedlast(xhigh, s * b)
+        jlow = searchsortedlast(xlow, s * a)
+        return (s - s0) * feasset.n + jhigh * s * b - sum(xhigh[1:jhigh]) - jlow * s * a +
+               sum(xlow[1:jlow])
     end
     # println(s0, extrema(xs)) # debug
-    sminhigh,smaxhigh = extrema(xhigh)
-    sminlow,smaxlow = extrema(xlow)
-    smax = maximum((s0, smaxhigh/b, smaxlow/a))
-    smin = minimum((s0, sminhigh/b, sminlow/a))
+    sminhigh, smaxhigh = extrema(xhigh)
+    sminlow, smaxlow = extrema(xlow)
+    smax = maximum((s0, smaxhigh / b, smaxlow / a))
+    smin = minimum((s0, sminhigh / b, sminlow / a))
     # smax = maximum((s0, smaxhigh/b))
     # smin = minimum((s0, sminlow/a))
     sopt = find_zero(rp, (smin, smax))
@@ -191,15 +202,14 @@ function _project!(xp, x, feasset::ConstrainedByShapeClipped)    #introduced hel
     #     s0
     # end
 
-
     @inbounds for i in feasset.mid
         xp[i] = update_amplitude(sopt * feasset.amp[i], x[i])
     end
     @inbounds for i in feasset.low
-        xp[i] = update_amplitude(min.(abs(x[i]),sopt * a), x[i])
+        xp[i] = update_amplitude(min.(abs(x[i]), sopt * a), x[i])
     end
     @inbounds for i in feasset.high
-        xp[i] = update_amplitude(max.(abs(x[i]),sopt * b), x[i])
+        xp[i] = update_amplitude(max.(abs(x[i]), sopt * b), x[i])
     end
 
     return xp, sopt
@@ -208,17 +218,19 @@ end
 function _project2!(xp, x, feasset::ConstrainedByShapeClipped)    #introduced helper function to get access to sopt
     s0 = abs.(x)[feasset.mid]' * feasset.amp[feasset.mid] / feasset.n
     f02 = feasset.n
-    b=feasset.vhigh
-    a=feasset.vlow
+    b = feasset.vhigh
+    a = feasset.vlow
 
     xhigh = sort(abs.(x[feasset.high]))
     xlow = sort(abs.(x[feasset.low]))
     g = vcat(xlow, xhigh)
     function rp(s)
-        return (s - s0) * f02 + sum(g-> s> g ? s-g : 0, xhigh, init = 0) + sum(g-> s< g ? s-g : 0, xlow, init = 0)
+        return (s - s0) * f02 +
+               sum(g -> s > g ? s - g : 0, xhigh; init=0) +
+               sum(g -> s < g ? s - g : 0, xlow; init=0)
     end
-    r1(i) = rp(g[i]) 
-    i0 =  searchsortedlast(1:length(g),0, by = i-> i == 0 ? 0 : r1(i))
+    r1(i) = rp(g[i])
+    i0 = searchsortedlast(1:length(g), 0; by=i -> i == 0 ? 0 : r1(i))
     if i0 == 0
         x0 = g[1] - 1
         x1 = g[1]
@@ -227,22 +239,21 @@ function _project2!(xp, x, feasset::ConstrainedByShapeClipped)    #introduced he
         x0 = g[end]
     else
         x0 = g[i0]
-        x1 = g[i0+1]
+        x1 = g[i0 + 1]
     end
     y0 = rp(x0)
     y1 = rp(x1)
-    λ =  y1/(y1-y0)
-    sopt = x0*λ + x1*(1-λ)
-
+    λ = y1 / (y1 - y0)
+    sopt = x0 * λ + x1 * (1 - λ)
 
     @inbounds for i in feasset.mid
         xp[i] = update_amplitude(sopt * feasset.amp[i], x[i])
     end
     @inbounds for i in feasset.low
-        xp[i] = update_amplitude(min.(abs(x[i]),sopt * a), x[i])
+        xp[i] = update_amplitude(min.(abs(x[i]), sopt * a), x[i])
     end
     @inbounds for i in feasset.high
-        xp[i] = update_amplitude(max.(abs(x[i]),sopt * b), x[i])
+        xp[i] = update_amplitude(max.(abs(x[i]), sopt * b), x[i])
     end
 
     return xp, sopt

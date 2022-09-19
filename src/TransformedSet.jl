@@ -7,9 +7,8 @@ Should support `forward!` and `backward!` methods.
 abstract type TransformedSet <: FeasibleSet end
 
 function generatingset(ts::TransformedSet)
-error("Cannot find the generating set for $ts.")
+    return error("Cannot find the generating set for $ts.")
 end
-
 
 """
     forward!(ts::TransformedSet)
@@ -19,7 +18,7 @@ it updates the first argument:
 use `forward!(ts)(q,p)` to obtain `q = F(p)`.
 """
 function forward!(ts::TransformedSet)
-error("The forward transform is not defined for $ts.")
+    return error("The forward transform is not defined for $ts.")
 end
 
 """
@@ -30,17 +29,16 @@ it updates the first argument:
 use `backward!(ts)(p,q)` to obtain `p: q = F(p)`.
 """
 function backward!(ts::TransformedSet)
-error("The backward transform is not defined for $ts.")
+    return error("The backward transform is not defined for $ts.")
 end
 
 # it's easy to get an element of a transformed set
-function getelement(ts::TransformedSet) 
+function getelement(ts::TransformedSet)
     genel = getelement(generatingset(ts))
-    el=copy(genel)
-    forward!(ts)(el,genel)
+    el = copy(genel)
+    forward!(ts)(el, genel)
     return el
 end
-
 
 """
     AbstractLinearTransformedSet
@@ -52,7 +50,7 @@ abstract type AbstractLinearTransformedSet <: TransformedSet end
 
 generatingset(s::AbstractLinearTransformedSet) = s.set
 forward!(s::AbstractLinearTransformedSet) = ((q, p) -> mul!(q, s.fplan, p))
-backward!(s::AbstractLinearTransformedSet) = ((p,q) -> mul!(p, s.bplan, q))
+backward!(s::AbstractLinearTransformedSet) = ((p, q) -> mul!(p, s.bplan, q))
 bufer(s::AbstractLinearTransformedSet) = s.bufer
 
 function project!(xp, x, s::AbstractLinearTransformedSet) # we don't want to destroy x
@@ -72,16 +70,20 @@ function project!(x, s::AbstractLinearTransformedSet) # we can discard the value
 end
 
 # concrete types
-struct LinearTransformedSet{TS,T,N} <: AbstractLinearTransformedSet 
+struct LinearTransformedSet{TS,T,N} <: AbstractLinearTransformedSet
     set::TS
     fplan::Array{T,N}
     bplan::Array{T,N}
     bufer
 end
 
-transform(set::FeasibleSet, fplan, bplan)  = LinearTransformedSet(set, fplan, bplan, getelement(set))
+function transform(set::FeasibleSet, fplan, bplan)
+    return LinearTransformedSet(set, fplan, bplan, getelement(set))
+end
 
-struct FourierTransformedSet{TS,PF,PB} <: AbstractLinearTransformedSet where {TS <: FeasibleSet,PF <: AbstractFFTs.Plan,PB <: AbstractFFTs.Plan}
+struct FourierTransformedSet{TS,PF,PB} <: AbstractLinearTransformedSet where {
+    TS<:FeasibleSet,PF<:AbstractFFTs.Plan,PB<:AbstractFFTs.Plan
+}
     set::TS
     fplan::PF
     bplan::PB
@@ -89,8 +91,11 @@ struct FourierTransformedSet{TS,PF,PB} <: AbstractLinearTransformedSet where {TS
 end
 
 # TODO make a flag for direction
-FourierTransformedSet(s::FeasibleSet) = 
-    FourierTransformedSet(s, FFTW.plan_ifft(getelement(s)), FFTW.plan_fft(getelement(s)), getelement(s))
+function FourierTransformedSet(s::FeasibleSet)
+    return FourierTransformedSet(
+        s, FFTW.plan_ifft(getelement(s)), FFTW.plan_fft(getelement(s)), getelement(s)
+    )
+end
 
 # struct UnitaryTransformedSet{TS,T,N} <: AbstractLinearTransformedSet where {TS <: FeasibleSet,T,N}
 #     set::TS
@@ -98,4 +103,3 @@ FourierTransformedSet(s::FeasibleSet) =
 #     bplan::Array{T,N}
 #     bufer
 # end
-
