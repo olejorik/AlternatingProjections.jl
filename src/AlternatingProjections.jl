@@ -15,6 +15,7 @@ module AlternatingProjections
 using LinearAlgebra
 using FFTW
 import Base.size # to add size method for FeasibleSet's subtypes
+import Base.eltype
 
 include("AbstractProblems.jl")
 export Problem,
@@ -62,6 +63,7 @@ For any concrete subtype, we define a project operator (maybe set-valued).
 abstract type FeasibleSet end
 
 getelement(s::FeasibleSet) = error("Don't know how to take an element of $(typeof(s))")
+Base.size(s::FeasibleSet) = error("Don't know how to take size of an element of $(typeof(s))")
 
 """
 Big class of feasibility problems./
@@ -79,6 +81,7 @@ struct TwoSetsFP <: FeasibilityProblem
     B::FeasibleSet
 end
 
+#TODO change to treat isConvex
 """
     ConvexSet
 
@@ -150,6 +153,7 @@ include("DR.jl")
 include("DRAP.jl")
 
 include("TransformedSet.jl")
+include("PhaseDiversedSet.jl")
 
 # Constraints
 include("SupportConstraint.jl")
