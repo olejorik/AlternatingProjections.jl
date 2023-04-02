@@ -17,7 +17,7 @@ Base.@kwdef struct DRAPparam <: DRAP
     maxit::Union{Missing,Int64} = missing
     keephistory::Bool = false
     snapshots::Array{Int64} = Int64[]
-    β::Union{Float64,Missing} = missing
+    β::Union{Float64,Vector{Float64},Missing} = missing
 end
 
 initial(alg::DRAPparam) = alg.x⁰
@@ -46,6 +46,17 @@ function solve(
 
     β = alg.β
     !ismissing(β) || (β = 0.9)
+
+    # Make an array of changing beta of length maxit or use the same beta
+    if typeof(β) = Float64    
+        updatebeta(k) = β
+    else # Vector{Float64}
+        if length(β) < maxit
+            β = [β, fill(β[end], maxit = length(β))]
+        end
+        updatebeta(k) = β[k+1]
+    end
+        
 
     k = 0
     ϵ = Inf
@@ -83,12 +94,14 @@ function solve(
 
     while k < maxit && ϵ > maxϵ
 
+        βᵏ= updatebeta(k)
+
         # Tdrap = Pa( (1+β)Pb - β Id) - β(Pb -Id)
         project!(yᵏ, xᵏ, B) #Pb
 
-        @. zᵏ = (1 + β) * yᵏ - β * xᵏ # (1+β)Pb - β Id
+        @. zᵏ = (1 + βᵏ) * yᵏ - βᵏ * xᵏ # (1+β)Pb - β Id
         project!(xᵏ⁺¹, zᵏ, A) # Pa( (1+β)Pb - β Id)
-        @. xᵏ⁺¹ = xᵏ⁺¹ - β * (yᵏ - xᵏ)  # Pa( (1+β)Pb - β Id) - β(Pb -Id)
+        @. xᵏ⁺¹ = xᵏ⁺¹ - βᵏ * (yᵏ - xᵏ)  # Pa( (1+β)Pb - β Id) - β(Pb -Id)
 
         err .= xᵏ⁺¹ .- xᵏ # This doesn't say much in infeasible case, but is OK in case of binary aperture
         # dist .= xᵏ⁺¹ .- yᵏ # this calculates true error but can stay large in case of infeasible case
