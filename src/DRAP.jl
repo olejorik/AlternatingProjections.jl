@@ -26,6 +26,10 @@ maxit(alg::DRAPparam) = alg.maxit
 keephistory(alg::DRAPparam) = alg.keephistory
 snapshots(alg::DRAPparam) = alg.snapshots
 
+updatebeta(β::Number, k) = β
+updatebeta(β::Vector, k) = β[k]
+
+
 function solve(
     p::TwoSetsFP,
     alg::DRAPparam,
@@ -48,13 +52,14 @@ function solve(
     !ismissing(β) || (β = 0.9)
 
     # Make an array of changing beta of length maxit or use the same beta
-    if typeof(β) = Float64    
-        updatebeta(k) = β
+    if typeof(β) == Float64  
+        @info "beta is a constant"  
     else # Vector{Float64}
+        @info "beta is a vector"
         if length(β) < maxit
-            β = [β, fill(β[end], maxit = length(β))]
+            β = [β; fill(β[end], maxit - length(β))]
+            # @info "Beta is upadated to a vector of lenght $(length(β)) " β
         end
-        updatebeta(k) = β[k+1]
     end
         
 
@@ -93,8 +98,8 @@ function solve(
     j = 1
 
     while k < maxit && ϵ > maxϵ
-
-        βᵏ= updatebeta(k)
+        # print("k = $k") #debug
+        βᵏ= updatebeta(β, k+1)
 
         # Tdrap = Pa( (1+β)Pb - β Id) - β(Pb -Id)
         project!(yᵏ, xᵏ, B) #Pb
