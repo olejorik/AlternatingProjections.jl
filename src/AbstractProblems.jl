@@ -30,11 +30,11 @@ abstract type Algorithm end
 """
 Iterative methods form an important class of algorithms with iteratively adjust solution.
 
-Concrete types of the `IterativeAlgorithm` should contain the initial value, tolerance and maximum number of iterations and 
+Concrete types of the `IterativeAlgorithm` should contain the initial value, tolerance and maximum number of iterations and
 are used more for convenience. These can be obtained by fucntions `initial`, `tolerance`, `maxit` fuctions. If applied the
 abstract types, these fucntions return `missing` and can trigger using of the default values.
 
-In addition, the concrete types contain instructions on whether or not to keeep the history of the convergence and 
+In addition, the concrete types contain instructions on whether or not to keeep the history of the convergence and
 some snapshots of the inner state of an iterator. These values are given by functions `keephistory` and `snapshots`.
 
 """
@@ -79,7 +79,7 @@ snapshots(alg::IterativeAlgorithm) = Int64[]
     solve(p::Problem,x⁰,alg::Algorithm)
 
     solve(p::Problem,alg::IterativeAlgorithm; x⁰, ϵ, maxit, keephistory, snapshshots)
-    
+
     solve(p::Problem,(alg1, alg2,...); x⁰, ϵ, maxit, keephistory, snapshshots)
 
 
@@ -139,7 +139,7 @@ function solve(p::Problem, alg::IterativeAlgorithm, args...; kwargs...)
     return error("Don't know how to solve ", typeof(p), " with method ", typeof(alg))
 end
 
-# several algorithms, unpacked defaults 
+# several algorithms, unpacked defaults
 function solve(p::Problem, algs::Tuple{Vararg{IterativeAlgorithm}}, args...; kwargs...)
     # solve with the first algorithm
     sol1 = solve(p, algs[1], args...; kwargs...)
@@ -151,10 +151,10 @@ function solve(p::Problem, algs::Tuple{Vararg{IterativeAlgorithm}}, args...; kwa
         sol2 = solve(p, algs[2:end]; x⁰=copy(solution(sol1)), kwargs...)
         sol = (
             solution(sol2),
-            # (lasty = lasty(sol2), 
-            # errhist = [errhist(sol1); errhsit(sol2)],  
-            # disthist = [disthist(sol1); disthist(sol2)], 
-            # distgthist = [sol1[2][:distgthist]; sol2[2][:distgthist]], 
+            # (lasty = lasty(sol2),
+            # errhist = [errhist(sol1); errhsit(sol2)],
+            # disthist = [disthist(sol1); disthist(sol2)],
+            # distgthist = [sol1[2][:distgthist]; sol2[2][:distgthist]],
             # xhist = [sol1[2][:xhist];sol2[2][:xhist]],
             # k = sol1[2][:k] + sol2[2][:k]))
             combinehist(sol1, sol2),
@@ -198,7 +198,7 @@ function itersteps(sol::Tuple{Any,NamedTuple})
 end
 
 function combinehist(sol1::Tuple{Any,NamedTuple}, sol2::Tuple{Any,NamedTuple})
-    allkeys = union(keys(history(sol1)), keys(history(sol2)))
+    allkeys = intersect(keys(history(sol1)), keys(history(sol2)))
     allvalues = []
     for k in allkeys
         if k == :lasty

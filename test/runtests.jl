@@ -1,28 +1,28 @@
 using AlternatingProjections, FFTW
+# using CairoMakie # for visualisations
 # using LinearAlgebra
 using Test
 
 @testset "AlternatingProjections.jl" begin
     # Write your own tests here.
 
-    S = ConstrainedBySupport([true, false,true])
+    S = ConstrainedBySupport([true, false, true])
     A = ConstrainedByAmplitude([1, sqrt(2), 5])
     x = [1, 2, 3]
-    y = [2im, -2. + 2im, 6 - 8im]
+    y = [2im, -2.0 + 2im, 6 - 8im]
     @test project(x, S) == [1, 0, 3]
-    @test project(y, A) ≈  [im, -1 + im, 3 - 4im]
+    @test project(y, A) ≈ [im, -1 + im, 3 - 4im]
 
-    xr=copy(x)
-    reflect!(xr,x,S)
+    xr = copy(x)
+    reflect!(xr, x, S)
     @test xr == [1, -2, 3]
 
-    y = zeros(ComplexF64,10,10)  # for ComplexF64 increas the number of iterations
-    y[1:5,1:5] = randn(ComplexF32, 5,5)
+    y = zeros(ComplexF64, 10, 10)  # for ComplexF64 increas the number of iterations
+    y[1:5, 1:5] = randn(ComplexF32, 5, 5)
     Y = fft(y)
     # z = apsolve(abs.(y),abs.(Y), GS, maxit =3000,maxϵ = 1e-18)
     # @test abs.(z) ≈ abs.(y)
     # @test abs.(fft(z)) ≈  abs.(Y)
-
 
     # p= PR(abs.(y),abs.(Y))
     # gs=AP(3000,1e-6)
@@ -34,55 +34,51 @@ using Test
 
 end
 
-
 @testset "FourierTransformedSet" begin
-    a = ConstrainedByAmplitude(ones(5,5))
-    A = FourierTransformedSet(a);
-    x = rand(Complex{Float64}, 5,5);
-    x = project!(x,a)
-    @test abs.(x) ≈ ones(5,5)
-    
-    y = similar(x);
-    project!(y,x,A)
-    @test abs.(fft(y)) ≈ ones(5,5)
+    a = ConstrainedByAmplitude(ones(5, 5))
+    A = FourierTransformedSet(a)
+    x = rand(Complex{Float64}, 5, 5)
+    x = project!(x, a)
+    @test abs.(x) ≈ ones(5, 5)
 
-    @test AlternatingProjections.getelement(a) == ones(5,5)
-    B = zeros(Complex,(5,5)); B[1] +=1;
+    y = similar(x)
+    project!(y, x, A)
+    @test abs.(fft(y)) ≈ ones(5, 5)
+
+    @test AlternatingProjections.getelement(a) == ones(5, 5)
+    B = zeros(Complex, (5, 5))
+    B[1] += 1
     @test AlternatingProjections.getelement(A) ≈ B
-     
-    
 end
 
 @testset "Amplitude and Shape Constraints" begin
-    a = [ 8 - i^2 - j^2 for i in -2:2, j in -2:2]
-    m = [ i >= 0 && j >= 0 for i in -2:2, j in -2:2]
+    a = [8 - i^2 - j^2 for i in -2:2, j in -2:2]
+    m = [i >= 0 && j >= 0 for i in -2:2, j in -2:2]
 
     A = ConstrainedByAmplitude(a)
-    B = ConstrainedByAmplitudeMasked(a,m)
+    B = ConstrainedByAmplitudeMasked(a, m)
     C = ConstrainedByShape(a)
     D = ConstrainedByShapeMasked(a, m)
 
-    x = randn(ComplexF64, 5,5)
-    y = project(x,A)
+    x = randn(ComplexF64, 5, 5)
+    y = project(x, A)
     z = project(x, B)
-    v = project(x,C)
+    v = project(x, C)
     w = project(x, D)
 
     @test abs.(y) ≈ a
     @test abs.(z)[m] ≈ a[m]
-    @test abs.(v)/sum(abs.(v)) ≈ a /sum(a)
+    @test abs.(v) / sum(abs.(v)) ≈ a / sum(a)
 
     s = abs.(x)[D.mask]' * D.amp[D.mask] / D.n
 
-    @test abs.(w[m])/s ≈ a[m]
-
-
+    @test abs.(w[m]) / s ≈ a[m]
 end
 
 @testset "ConstrainedByShapeSaturated" begin
-    a = map(x -> 1-x^2, -1:0.1:1)
+    a = map(x -> 1 - x^2, -1:0.1:1)
     meas = 2 * a
-    measset = ConstrainedByShapeSaturated(meas, meas .<=1)
+    measset = ConstrainedByShapeSaturated(meas, meas .<= 1)
     meassat = copy(meas)
     meassat[meassat .> 1] .= 1
 
@@ -91,9 +87,7 @@ end
 
     p2 = project(meas, measset)
     @test p2 ≈ meas
-
 end
-
 
 @testset "solve" begin
 
@@ -102,40 +96,47 @@ end
     m = 10
 
     amp = 0.35
-    x = zeros(ComplexF64, n, n); x[1:m,1:m] .= exp.(amp * 2π * im * randn(Float64, m, m))
+    x = zeros(ComplexF64, n, n)
+    x[1:m, 1:m] .= exp.(amp * 2π * im * randn(Float64, m, m))
     a = abs.(x)
     X = fft(x)
     A = abs.(X)
     aset = ConstrainedByAmplitude(a)
     Aset = FourierTransformedSet(ConstrainedByAmplitude(A))
-    problem = TwoSetsFP(aset,Aset)
+    problem = TwoSetsFP(aset, Aset)
     # start with a good initial guess
-    sol = solve(problem, APparam(), x⁰ = x + 1.5 * randn(ComplexF64, n, n), maxit = 1000)
-    
+    xgood = x + 1 * randn(ComplexF64, n, n)
+
+    sol = solve(problem, APparam(); x⁰=xgood, maxit=1000)
+
     function testsolution(x, sol)
-        phasediff = -pi .+ mod2pi.(pi .+ angle.(sol[1][1:m,1:m]) .- angle.(x[1:m,1:m]))
-        phasediff .-= sum(phasediff)/m^2
-        phaserms = sqrt(sum(abs2,phasediff))/m
-        #phase difference can be visualised 
-        fig, ax, hm  =heatmap(phasediff)
-        Colorbar(fig[:, end+1], hm)
-        fig |> display
+        phasediff = -pi .+ mod2pi.(pi .+ angle.(sol[1][1:m, 1:m]) .- angle.(x[1:m, 1:m]))
+        phasediff .-= sum(phasediff) / m^2
+        phaserms = sqrt(sum(abs2, phasediff)) / m
+        # #phase difference can be visualised
+        # fig, ax, hm = heatmap(phasediff)
+        # Colorbar(fig[:, end + 1], hm)
+        # display(fig)
         println("phase rms = $phaserms")
         @test phaserms < 1e-6
     end
 
     testsolution(x, sol)
 
-    # and the same problem solved with DR method (it requires more iterations and other starting point)
-    sol = solve(problem, DRparam(), x⁰ = x + 1.5 * randn(ComplexF64, n, n), maxit = 1000)
-    
+    # and the same problem solved with DR method (it requires additional polishing with AP)
+    sol = solve(
+        problem,
+        (
+            DRparam(; maxit=100, keephistory=true),
+            APparam(; maxit=200, maxϵ=1e-15, keephistory=true),
+        );
+        x⁰=xgood,
+    )
     testsolution(x, sol)
 
     # and with DRAP algoritm
     # drap = DRAPparam(missing,500,missing,true,[1],0.1)
     # sol = solve(problem, drap, maxit=1000);
-    sol = solve(problem, DRAPparam(), x⁰ = x + 1.5 * randn(ComplexF64, n, n), maxit=1000);
+    sol = solve(problem, DRAPparam(); x⁰=xgood, maxit=1000)
     testsolution(x, sol)
 end
-
-
