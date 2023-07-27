@@ -1,6 +1,6 @@
 using AlternatingProjections, FFTW
 # using CairoMakie # for visualisations
-# using LinearAlgebra
+using LinearAlgebra: mul!
 using Test
 
 @testset "AlternatingProjections.jl" begin
@@ -139,4 +139,34 @@ end
     # sol = solve(problem, drap, maxit=1000);
     sol = solve(problem, DRAPparam(); x⁰=xgood, maxit=1000)
     testsolution(x, sol)
+end
+
+@testset "ScaledCopies" begin
+    sc = [[0, 2, 3], [0.1, 0.1, 1]]
+    plan = AlternatingProjections.plan_SC(sc)
+    p = rand(3)
+    q = similar(similar(p), size(p)..., size(plan.scales)...)
+    mul!(q, plan, p)
+    @test q ./ p ≈ hcat(sc...)
+
+    iplan = AlternatingProjections.invert(plan)
+    x = zero(p)
+    @test mul!(x, iplan, q) ≈ p
+
+    A = ConstrainedByAmplitude([1, 2.0, 0])
+    B = AlternatingProjections.ScaledCopies(A, sc)
+    z = AlternatingProjections.getelement(B)
+    @test z == [
+        0.0+0.0im 0.1+0.0im
+        4.0+0.0im 0.2+0.0im
+        0.0+0.0im 0.0+0.0im
+    ]
+
+    x = rand(ComplexF64, size(z)...)
+    AlternatingProjections.backproject!(x, B)
+    @test abs.(x) == [
+        0.0 0.1
+        4.0 0.2
+        0.0 0.0
+    ]
 end

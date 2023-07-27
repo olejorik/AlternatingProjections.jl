@@ -2,7 +2,7 @@
     TransformedSet
 
 Set obtained by some transformation from a feasible set (`generatingset`).
-Should support `forward!` and `backward!` methods. 
+Should support `forward!` and `backward!` methods.
 """
 abstract type TransformedSet <: FeasibleSet end
 
@@ -35,27 +35,25 @@ end
 # it's easy to get an element of a transformed set
 function getelement(ts::TransformedSet)
     genel = getelement(generatingset(ts))
-    el = copy(genel)
-    forward!(ts)(el, genel)
-    return el
+    return forward(ts)(genel)
 end
 
 """
     AbstractLinearTransformedSet
 
-Subtype of TransformedSet where `forward` and `backward` transformations are given by multiplication 
-by forward and backward "plans" (i.e. --- precomputed matrices). 
+Subtype of TransformedSet where `forward` and `backward` transformations are given by multiplication
+by forward and backward "plans" (i.e. --- precomputed matrices).
 """
 abstract type AbstractLinearTransformedSet <: TransformedSet end
 abstract type AbstractScaledCopiesSet <: AbstractLinearTransformedSet end
-abstract type AbstractUnitairyTransformedSet <:AbstractLinearTransformedSet end
+abstract type AbstractUnitairyTransformedSet <: AbstractLinearTransformedSet end
 
 # and the abstract plans
 abstract type AbstractLTPlan{T,N,M} end
 abstract type AbstractSCPlan{T,N,M} <: AbstractLTPlan{T,N,M} end
 
 size(p::AbstractLTPlan) = error("size of plan $(typeof(p)) is not defined")
-eltype(p::AbstractLTPlan{T,N,M})  where {T,N,M} = T
+eltype(p::AbstractLTPlan{T,N,M}) where {T,N,M} = T
 
 generatingset(s::AbstractLinearTransformedSet) = s.set
 
@@ -70,7 +68,14 @@ bplan(s::AbstractLinearTransformedSet) = s.bplan
 forward!(s::AbstractLinearTransformedSet) = ((q, p) -> mul!(q, s.fplan, p))
 backward!(s::AbstractLinearTransformedSet) = ((p, q) -> mul!(p, s.bplan, q))
 
-getplanelement(p::AbstractLTPlan) = zeros(eltype(p),size(p))
+function forward(s::AbstractLinearTransformedSet)
+    return (p -> mul!(similar(p, size(s.fplan)...), s.fplan, p))
+end
+function backward(s::AbstractLinearTransformedSet)
+    return (q -> mul!(similar(bplan.scales[1]), s.bplan, q))
+end
+
+getplanelement(p::AbstractLTPlan) = zeros(eltype(p), size(p))
 getdomainelement(s::AbstractLinearTransformedSet) = getplanelement(fplan(s))
 getimageelement(s::AbstractLinearTransformedSet) = getplanelement(bplan(s))
 
@@ -101,9 +106,8 @@ function backproject!(x, s::AbstractLinearTransformedSet) # we can discard the v
 end
 
 # For unitair trnasforms, the back projections is the way to calculate the projection
-project!(x, s::AbstractUnitairyTransformedSet) = backproject!(x,s)
-project!(xp, x, s::AbstractUnitairyTransformedSet) = backproject!(xp, x,s)
-
+project!(x, s::AbstractUnitairyTransformedSet) = backproject!(x, s)
+project!(xp, x, s::AbstractUnitairyTransformedSet) = backproject!(xp, x, s)
 
 # concrete types
 
@@ -144,30 +148,45 @@ function invert(p::plan_SC)
         for j in eachindex(p.scales)
             norm += abs2(p.scales[j][i])
         end
-        normarray[i]=norm
+        normarray[i] = norm != 0 ? norm : 1
     end
-    return plan_iSC(conj.(p.scales),normarray)
+    return plan_iSC(conj.(p.scales), normarray)
 end
 
-
-eltype(p::AbstractSCPlan{T,N, M}) where {T,N, M} = T
-size(p::AbstractSCPlan) = (size(p.scales[1])...,size(p.scales)...)
+eltype(p::AbstractSCPlan{T,N,M}) where {T,N,M} = T
+size(p::AbstractSCPlan) = (size(p.scales[1])..., size(p.scales)...)
+norming(p::plan_iSC) = p.norm
 
 function LinearAlgebra.mul!(y, p::plan_SC, x)
     for i in CartesianIndices(p.scales)
         for indx in CartesianIndices(x)
-            y[indx,i] = p.scales[i][indx] * x[indx]
+            y[indx, i] = p.scales[i][indx] * x[indx]
         end
     end
     return y
 end
 
-struct ScaledCopies{TS, PF, PB} <: AbstractScaledCopiesSet where
-    {TS<:FeasibleSet, PF<:AbstractSCPlan, PB <: AbstractSCPlan}
+function LinearAlgebra.mul!(x, p::plan_iSC, y)
+    for indx in CartesianIndices(x)
+        x[indx] = 0
+        for i in CartesianIndices(p.scales)
+            x[indx] += p.scales[i][indx] * y[indx, i]
+        end
+        x[indx] /= p.norm[indx]
+    end
+    return x
+end
+
+struct ScaledCopies{TS,PF,PB} <:
+       AbstractScaledCopiesSet where {TS<:FeasibleSet,PF<:AbstractSCPlan,PB<:AbstractSCPlan}
     set::TS
     fplan::PF
     bplan::PB
     bufer
+end
+
+function ScaledCopies(A::FeasibleSet, scales)
+    return ScaledCopies(A, plan_SC(scales), invert(plan_SC(scales)), getelement(A))
 end
 
 # Fourier-transformed
