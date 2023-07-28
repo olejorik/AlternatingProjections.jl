@@ -21,6 +21,10 @@ function forward!(ts::TransformedSet)
     return error("The forward transform is not defined for $ts.")
 end
 
+function forward(ts::TransformedSet)
+    return error("The forward transform is not defined for $ts.")
+end
+
 """
     backward!(ts::TransformedSet)
 
@@ -29,6 +33,10 @@ it updates the first argument:
 use `backward!(ts)(p,q)` to obtain `p: q = F(p)`.
 """
 function backward!(ts::TransformedSet)
+    return error("The backward transform is not defined for $ts.")
+end
+
+function backward(ts::TransformedSet)
     return error("The backward transform is not defined for $ts.")
 end
 
@@ -41,8 +49,10 @@ end
 """
     AbstractLinearTransformedSet
 
-Subtype of TransformedSet where `forward` and `backward` transformations are given by multiplication
-by forward and backward "plans" (i.e. --- precomputed matrices).
+Subtype of TransformedSet where `forward` and `backward` transformations are given
+by multiplication
+by forward and backward "plans" (i.e. --- precomputed matrices, or fast algorithms
+implementing this multiplication).
 """
 abstract type AbstractLinearTransformedSet <: TransformedSet end
 abstract type AbstractScaledCopiesSet <: AbstractLinearTransformedSet end
@@ -54,6 +64,9 @@ abstract type AbstractSCPlan{T,N,M} <: AbstractLTPlan{T,N,M} end
 
 size(p::AbstractLTPlan) = error("size of plan $(typeof(p)) is not defined")
 eltype(p::AbstractLTPlan{T,N,M}) where {T,N,M} = T
+# forward and backward sizes of the plans are input and output dimensions of the linear transform
+fsize(p::AbstractLTPlan) = error("forward size of plan $(typeof(p)) is not defined")
+bsize(p::AbstractLTPlan) = error("backward size of plan $(typeof(p)) is not defined")
 
 generatingset(s::AbstractLinearTransformedSet) = s.set
 
@@ -65,6 +78,7 @@ generatingset(s::AbstractLinearTransformedSet) = s.set
 import LinearAlgebra: mul!
 fplan(s::AbstractLinearTransformedSet) = s.fplan
 bplan(s::AbstractLinearTransformedSet) = s.bplan
+
 forward!(s::AbstractLinearTransformedSet) = ((q, p) -> mul!(q, s.fplan, p))
 backward!(s::AbstractLinearTransformedSet) = ((p, q) -> mul!(p, s.bplan, q))
 
@@ -76,14 +90,14 @@ function backward(s::AbstractLinearTransformedSet)
 end
 
 getplanelement(p::AbstractLTPlan) = zeros(eltype(p), size(p))
-getdomainelement(s::AbstractLinearTransformedSet) = getplanelement(fplan(s))
-getimageelement(s::AbstractLinearTransformedSet) = getplanelement(bplan(s))
+getdomainelement(s::AbstractLinearTransformedSet) = zeros(eltype(fplan(s)), bsize(s))
+getimageelement(s::AbstractLinearTransformedSet) = zeros(eltype(fplan(s)), fsize(s))
 
 bufer(s::AbstractLinearTransformedSet) = s.bufer
 
-#sizes of the elements in the domain and the image spaces are given by the plan szes
-fsize(s::AbstractLinearTransformedSet) = size(fplan(s))
-bsize(s::AbstractLinearTransformedSet) = size(bplan(s))
+#sizes of the elements in the domain and the image spaces are given by the plan sizes
+fsize(s::AbstractLinearTransformedSet) = fsize(fplan(s))
+bsize(s::AbstractLinearTransformedSet) = bsize(fplan(s))
 
 """
     Calcuate image of the "projection in the orignal space" by transforming back, projecting, and transforming forward.
@@ -138,8 +152,11 @@ end
 
 struct plan_iSC{T,N,M} <: AbstractSCPlan{T,N,M}
     scales::Array{Array{T,N},M}
-    norm::Array{T,N}
+    # norm::Array{T,N}
 end
+
+fsize(p::plan_SC) = size(p)
+bsize(p::plan_SC{T,N,M}) where {T,N,M} = size(p)[1:N]
 
 function invert(p::plan_SC)
     normarray = similar(p.scales[1])
@@ -150,12 +167,12 @@ function invert(p::plan_SC)
         end
         normarray[i] = norm != 0 ? norm : 1
     end
-    return plan_iSC(conj.(p.scales), normarray)
+    return plan_iSC([conj.(p.scales[i]) ./ normarray for i in CartesianIndices(p.scales)])
 end
 
 eltype(p::AbstractSCPlan{T,N,M}) where {T,N,M} = T
 size(p::AbstractSCPlan) = (size(p.scales[1])..., size(p.scales)...)
-norming(p::plan_iSC) = p.norm
+# norming(p::plan_iSC) = p.norm
 
 function LinearAlgebra.mul!(y, p::plan_SC, x)
     for i in CartesianIndices(p.scales)
@@ -172,7 +189,7 @@ function LinearAlgebra.mul!(x, p::plan_iSC, y)
         for i in CartesianIndices(p.scales)
             x[indx] += p.scales[i][indx] * y[indx, i]
         end
-        x[indx] /= p.norm[indx]
+        # x[indx] /= p.norm[indx]
     end
     return x
 end
