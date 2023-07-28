@@ -1,4 +1,4 @@
-#= 
+#=
 Alternating Projections methods, first try
 - Julia version: 1.1.0
 - Author: Oleg Soloviev
@@ -15,6 +15,7 @@ module AlternatingProjections
 using LinearAlgebra
 using FFTW
 import Base.size # to add size method for FeasibleSet's subtypes
+import Base.eltype
 
 include("AbstractProblems.jl")
 export Problem,
@@ -53,7 +54,7 @@ export ProjectionsMethod,
 """
     FeasibleSet
 
-Abstract type representing a set for feasibility problem. 
+Abstract type representing a set for feasibility problem.
     For any set we should be able to take it's representative element.
 
 For any concrete subtype, we define a project operator (maybe set-valued).
@@ -62,16 +63,20 @@ For any concrete subtype, we define a project operator (maybe set-valued).
 abstract type FeasibleSet end
 
 getelement(s::FeasibleSet) = error("Don't know how to take an element of $(typeof(s))")
+function Base.size(s::FeasibleSet)
+    return error("Don't know how to take size of an element of $(typeof(s))")
+end
 
 """
-Big class of feasibility problems./
+Big class of feasibility problems.
 """
 abstract type FeasibilityProblem <: Problem end
 
 """
     TwoSetsFP(A,B)
 
-Two sets feasibility problem: for given sets A and B find x∈A∩B, if A∩B≠∅, or x∈A closest to B in some sense.
+Two sets feasibility problem:
+    for given sets A and B find x∈A∩B, if A∩B≠∅, or x∈A closest to B in some sense.
 
 """
 struct TwoSetsFP <: FeasibilityProblem
@@ -79,6 +84,7 @@ struct TwoSetsFP <: FeasibilityProblem
     B::FeasibleSet
 end
 
+#TODO change to trait isConvex
 """
     ConvexSet
 
@@ -105,7 +111,7 @@ end
 """
     project!(x, A)
 
-Project `x` on set `A` and storing result in `x`.
+Project `x` on set `A` and store result in `x`.
 """
 function project!(x, feasset::FeasibleSet)
     return error(
@@ -150,6 +156,7 @@ include("DR.jl")
 include("DRAP.jl")
 
 include("TransformedSet.jl")
+include("PhaseDiversedSet.jl")
 
 # Constraints
 include("SupportConstraint.jl")
