@@ -27,7 +27,7 @@ end
 function PhaseDiversedSet(
     s::FeasibleSet, phases::Array{T}
 ) where {T<:Array{N} where {N<:Real}}
-    scales = exp.(im .* phases)
+    scales = map(x -> exp.(im .* x), phases)
     return PhaseDiversedSet(s, plan_SC(scales), invert(plan_SC(scales)), getelement(s))
 end
 

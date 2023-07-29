@@ -222,6 +222,14 @@ function FourierTransformedSet(s::FeasibleSet)
         s, FFTW.plan_ifft(getelement(s)), FFTW.plan_fft(getelement(s)), getelement(s)
     )
 end
+function FourierTransformedSet(s::FeasibleSet, dims)
+    return FourierTransformedSet(
+        s,
+        FFTW.plan_ifft(getelement(s), dims),
+        FFTW.plan_fft(getelement(s), dims),
+        getelement(s),
+    )
+end
 
 # struct UnitaryTransformedSet{TS,T,N} <: AbstractLinearTransformedSet where {TS <: FeasibleSet,T,N}
 #     set::TS
