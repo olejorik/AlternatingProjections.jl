@@ -47,6 +47,8 @@ Get the inital value of  iterative algorithm `alg`.
 """
 initial(alg::IterativeAlgorithm) = missing
 
+initial(algs::Tuple{Vararg{IterativeAlgorithm}}) = initial(algs[1])
+
 """
     tolerance(alg::IterativeAlgorithm)::Float64
 
@@ -144,8 +146,7 @@ function solve(p::Problem, algs::Tuple{Vararg{IterativeAlgorithm}}, args...; kwa
     # solve with the first algorithm
     sol1 = solve(p, algs[1], args...; kwargs...)
     # if the error is smaller than the tolerane of the following algorithm, do nothing
-    if !ismissing(tolerance(algs[2])) &&
-            last(errhist(sol1)) <= tolerance(algs[2])
+    if !ismissing(tolerance(algs[2])) && last(errhist(sol1)) <= tolerance(algs[2])
         return sol1
     else
         # else continue starting with the last value and combine the solutions

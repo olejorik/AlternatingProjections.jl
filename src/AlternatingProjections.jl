@@ -47,7 +47,8 @@ export ProjectionsMethod,
     FourierTransformedSet,
     forward!,
     backward!,
-    generatingset
+    generatingset,
+    getelement
 
 # Common type of a problem is feasibility problem, for which we need to introduce concept of
 # a feasuible set
