@@ -1,5 +1,5 @@
 """
-    AmplitudeConstrainedSet 
+    AmplitudeConstrainedSet
 
 Abstract set of complex-values `x` with a given absolute value `|x| = amp`. The amplitude can be extracted by function `amp`.
 
@@ -13,7 +13,7 @@ getelement(s::AmplitudeConstrainedSet) = complex(float(amp(s))) # element of the
 """
     ConstrainedByAmplitude{T,N}
 
-Set of abstract arryas with element type `T` and dimensions `N` defined by the amplitude constraint `|x| = amp`. 
+Set of abstract arryas with element type `T` and dimensions `N` defined by the amplitude constraint `|x| = amp`.
 
 """
 struct ConstrainedByAmplitude{T,N} <: AmplitudeConstrainedSet where {T<:Real,N}
@@ -35,13 +35,13 @@ function ConstrainedByAmplitude(a::AbstractArray{Union{T,Nothing},N}) where {T,N
     return ConstrainedByAmplitude{Union{T,Nothing},N}(a)
 end
 
-# function ConstrainedByAmplitude(a::AbstractArray{T,N}) 
-#     ConstrainedByAmplitude{T,N}(a)    
+# function ConstrainedByAmplitude(a::AbstractArray{T,N})
+#     ConstrainedByAmplitude{T,N}(a)
 # end
 export ConstrainedByAmplitude
 
 """
-    ACset{T,N,M,K}(amp,projdims) 
+    ACset{T,N,M,K}(amp,projdims)
 
 Constructs an extended version of the AmplitudeCosntrained set. Here, `amp` can be a tuple
 of amplitudes, and `projdims` are the dimeshoins, along with the length of the vector is measured.
@@ -109,7 +109,7 @@ end
 export ConstrainedByAmplitudeSaturated
 
 # here the backward plan is in place
-# FourierTransformedSet(s::AmplitudeConstrainedSet) = 
+# FourierTransformedSet(s::AmplitudeConstrainedSet) =
 #     FourierTransformedSet(s, FFTW.plan_fft(getelement(s)), FFTW.plan_ifft!(getelement(s)))
 
 function project!(xp, x, feasset::ConstrainedByAmplitude)
@@ -179,3 +179,4 @@ end
 project!(x, feasset::ConstrainedByAmplitudeSaturated) = project!(x, x, feasset)
 
 include("ShapeConstraint.jl")
+include("LengthConstrained.jl")

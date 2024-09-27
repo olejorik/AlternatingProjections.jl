@@ -206,6 +206,9 @@ function ScaledCopies(A::FeasibleSet, scales)
     return ScaledCopies(A, plan_SC(scales), invert(plan_SC(scales)), getelement(A))
 end
 
+project!(xp, x, feasset::ScaledCopies) = backproject!(xp, x, feasset)
+project!(x, feasset::ScaledCopies) = backproject!(x, feasset)
+
 # Fourier-transformed
 struct FourierTransformedSet{TS,PF,PB} <: AbstractUnitairyTransformedSet where {
     TS<:FeasibleSet,PF<:AbstractFFTs.Plan,PB<:AbstractFFTs.Plan
