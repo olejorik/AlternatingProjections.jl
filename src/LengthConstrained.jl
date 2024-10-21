@@ -26,7 +26,9 @@ function project!(x, S::LCSet)
         #     @show s
         #     @show i
         #     @show sum(abs2, s)
-        s .*= (amp(S)[i] / sqrt(sum(abs2, s)))
+        if sum(abs2, s) != 0
+            s .*= (amp(S)[i] / sqrt(sum(abs2, s)))
+        end
     end
     return x
 end

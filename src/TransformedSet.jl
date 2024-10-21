@@ -148,10 +148,12 @@ end
 # ScaledCopies
 struct plan_SC{T,N,M} <: AbstractSCPlan{T,N,M}
     scales::Array{Array{T,N},M}
+    dims::Tuple{Int}
 end
 
 struct plan_iSC{T,N,M} <: AbstractSCPlan{T,N,M}
     scales::Array{Array{T,N},M}
+    dims::Tuple{Int}
     # norm::Array{T,N}
 end
 
@@ -177,7 +179,7 @@ size(p::AbstractSCPlan) = (size(p.scales[1])..., size(p.scales)...)
 function LinearAlgebra.mul!(y, p::plan_SC, x)
     for i in CartesianIndices(p.scales)
         for indx in CartesianIndices(x)
-            y[indx, i] = p.scales[i][indx] * x[indx]
+            y[indx, i] = p.scales[i][indx] .* x[indx]
         end
     end
     return y
