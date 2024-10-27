@@ -90,9 +90,9 @@ end
 end
 
 @testset "ScaledCopies" begin
-    sc = [[0, 2, 3], [0.1, 0.1, 1]]
-    plan = AlternatingProjections.plan_SC(sc)
     p = rand(3)
+    sc = [[0, 2, 3], [0.1, 0.1, 1]]
+    plan = AlternatingProjections.plan_SC(sc,p)
     q = AlternatingProjections.getplanelement(plan)
     mul!(q, plan, p)
     @test q ./ p ≈ hcat(sc...)
@@ -117,6 +117,15 @@ end
         4.0 0.2
         0.0 0.0
     ]
+
+    p2 = rand(3, 4,2)
+    sc2 = reshape([collect(i:i+2) for i in 1.:3:10],(2,2))
+    plan = AlternatingProjections.plan_SC(sc2,p2, [1])
+    q = AlternatingProjections.getplanelement(plan)
+    mul!(q, plan, p2)
+    sss =q ./ reshape(p2,(3,4,2,1,1))
+    @test (sss)[:,1,1,:,:] ≈ stack(sc2)
+
 end
 
 @testset "solve" begin
