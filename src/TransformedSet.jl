@@ -152,7 +152,7 @@ end
 #     dims::Tuple
 #     size::Tuple
 # end
-struct plan_SC{T,NSS, N,M,P,R,S} <: AbstractSCPlan{T,N,M} where {NSS, P,R,S}
+struct plan_SC{T,NSS,N,M,P,R,S} <: AbstractSCPlan{T,N,M} where {NSS,P,R,S}
     stackedscales::Array{T,NSS} #tmp solution
     dims_p::NTuple{P,Int}
     dims_r::NTuple{R,Int}
@@ -170,15 +170,17 @@ function plan_SC(
     dims_r = Tuple((length(dims) + 1):ndims(origin))
     dims_s = Tuple(length(dims) .+ (1:ndims(scales)))
     s = (size(origin)..., size(scales)...)
-    return plan_SC{T,L+N, O,M,length(dims_p),length(dims_r),length(dims_s)}(
+    return plan_SC{T,L + N,O,M,length(dims_p),length(dims_r),length(dims_s)}(
         stack(scales), dims_p, dims_r, dims_s, s
     )
 end
 
+plan_SC(scales, origin, dims::Tuple) = plan_SC(scales, origin, [dims...])
+
 scales(p::AbstractSCPlan) = eachslice(p.stackedscales; dims=p.dims_s)
 stackedscales(p::AbstractSCPlan) = p.stackedscales
 
-struct plan_iSC{T,NSS, N,M,P,R,S} <: AbstractSCPlan{T,N,M} where {NSS, P,R,S}
+struct plan_iSC{T,NSS,N,M,P,R,S} <: AbstractSCPlan{T,N,M} where {NSS,P,R,S}
     stackedscales::Array{T,NSS}
     dims_p::NTuple{P,Int}
     dims_r::NTuple{R,Int}
@@ -188,9 +190,9 @@ struct plan_iSC{T,NSS, N,M,P,R,S} <: AbstractSCPlan{T,N,M} where {NSS, P,R,S}
 end
 
 fsize(p::plan_SC) = size(p)
-bsize(p::plan_SC{T,NSS, N,M,P,R,S}) where {T,NSS, N,M,P,R,S} = size(p)[1:N]
+bsize(p::plan_SC{T,NSS,N,M,P,R,S}) where {T,NSS,N,M,P,R,S} = size(p)[1:N]
 
-function invert(p::plan_SC{T,NSS, N,M,P,R,S}) where {T,NSS,N,M,P,R,S}
+function invert(p::plan_SC{T,NSS,N,M,P,R,S}) where {T,NSS,N,M,P,R,S}
     normarray = reshape(sum(abs2, p.stackedscales; dims=p.dims_s), p.size[[p.dims_p...]])
     for j in eachindex(normarray)
         if normarray[j] == 0
@@ -198,8 +200,12 @@ function invert(p::plan_SC{T,NSS, N,M,P,R,S}) where {T,NSS,N,M,P,R,S}
         end
     end
 
-    return plan_iSC{T,P+S, M,N,P,R,S}(
-        stack([s ./ normarray for s in scales(p)]), p.dims_p, p.dims_r, p.dims_s, bsize(p)
+    return plan_iSC{T,P + S,M,N,P,R,S}(
+        stack([conj(s) ./ normarray for s in scales(p)]),
+        p.dims_p,
+        p.dims_r,
+        p.dims_s,
+        bsize(p),
     )
 end
 
@@ -240,8 +246,10 @@ function LinearAlgebra.mul!(
 
     # outer_multiply2!(y, stackedscales(p),x, NP, N, M, size(p))
 
-    # size1 = ntuple(i -> i <N+1 ? size(p)[i] : 1 ,M )
-    # size2 = ntuple(i -> NP < i <N+1 ? 1 : size(p)[i] ,M)
+    size1 = ntuple(i -> i < N + 1 ? size(p)[i] : 1, M)
+    size2 = ntuple(i -> NP < i < N + 1 ? 1 : size(p)[i], M)
+    # size1 = fill1dims(size(p),N,M)
+    # size2 = fill1dims(size(p),NP,N)
     # outer_multiply3!(y, stackedscales(p),x, NP, N, M,size1, size2)
 
 
@@ -256,6 +264,10 @@ end
 
 function slicedims(dims::NTuple{n,Int}, dfirst::Int, dlast::Int) where {n}
     return ntuple(i -> dims[i + dfirst - 1], dlast - dfirst + 1)
+end
+
+function fill1dims(dims::NTuple{n,Int}, dfirst::Int, dlast::Int) where {n}
+    return ntuple(i -> dfirst < i < dlast + 1 ? 1 : dims[i], n)
 end
 
 function outer_multiply5!(y, s, x, sizep, sizer, sizes)
@@ -297,7 +309,7 @@ function outer_multiply2!(y, s, x, NP, N, M, sizep)
 end
 
 function outer_multiply3!(y, s, x, NP, N, M, size1, size2)
-    y .= reshape(x, size1) .* reshape(s, size2)
+    @views y .= reshape(x, size1) .* reshape(s, size2)
     return y
 end
 
@@ -318,7 +330,9 @@ end
 #     return x
 # end
 
-function LinearAlgebra.mul!(x, p::plan_iSC{T,NSS,M,N,NP,NR,NS}, y) where {T, NSS, N,M,NP,NR,NS}
+function LinearAlgebra.mul!(
+    x, p::plan_iSC{T,NSS,M,N,NP,NR,NS}, y
+) where {T,NSS,N,M,NP,NR,NS}
     # S = scales(p)
     # P = eachslice(y; dims= N .+ ntuple(i->i, M-N))
     # for ip in eachindex(IndexCartesian(), S[1]),
@@ -364,12 +378,19 @@ function inner_multiply2!(x, s, y, sizep, sizer, sizes)
     return x
 end
 
-struct ScaledCopies{TS,PF,PB,TBF} <:
-       AbstractScaledCopiesSet where {TS<:FeasibleSet,PF<:AbstractSCPlan,PB<:AbstractSCPlan, TBF}
+struct ScaledCopies{TS,PF,PB,TBF} <: AbstractScaledCopiesSet where {
+    TS<:FeasibleSet,PF<:AbstractSCPlan,PB<:AbstractSCPlan,TBF
+}
     set::TS
     fplan::PF
     bplan::PB
     bufer::TBF
+end
+
+function ScaledCopies(A::FeasibleSet, scales, dims)
+    a = getelement(A)
+    fplan = plan_SC(scales, getelement(A), dims)
+    return ScaledCopies(A, fplan, invert(fplan), a)
 end
 
 function ScaledCopies(A::FeasibleSet, scales)

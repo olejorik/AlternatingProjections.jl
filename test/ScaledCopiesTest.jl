@@ -67,6 +67,17 @@ z = AlternatingProjections.getelement(B)
  x = rand(ComplexF64, size(z)...)
  AlternatingProjections.backproject!(x, B)
 
- @btime AlternatingProjections.backproject!($x, $B)
- @profview_allocs  for i in 1:10000 AlternatingProjections.backproject!(x, B); end
- @bprofile for i in 1:1000 AlternatingProjections.backproject!($x, $B); end
+ @btime project!($x, $B)
+ @profview_allocs  for i in 1:10000 project!(x, B); end
+ @bprofile for i in 1:1000 project!($x, $B); end
+
+ @btime project!($x,$B)
+
+ # check projections
+A = ConstrainedByAmplitude([1 2.0; 0 3])
+sc = [[1 0; 0 1], [1 1; 0 0.]]
+B = AlternatingProjections.ScaledCopies(A, sc)
+z = AlternatingProjections.getelement(B)
+
+diversities = [cispi.([0.25 0.25; 0.25 0.25]), cispi.([0.5 0.5; -0.5 0.5])]
+C = AlternatingProjections.ScaledCopies(B,diversities, [1,2])
