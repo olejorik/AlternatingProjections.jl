@@ -84,6 +84,14 @@ B = AlternatingProjections.ScaledCopies(A, sc)
 z = AlternatingProjections.getelement(B)
 y = project(-ones(size(z)), B)
 
+x = rand(ComplexF64, size(z))
+@bprofile for i in 1:10
+    for i in eachindex($x)
+        $x[i] = rand()
+    end
+    project!($x, $B)
+end
+
 
 diversities = [cispi.([0.25 0.25; 0.25 0.25]), cispi.([0.5 0.5; -0.5 0.5])]
 C = AlternatingProjections.ScaledCopies(B, diversities, [1, 2])
@@ -92,3 +100,14 @@ y2 = project(-ones(ComplexF64, size(z2)), C)
 
 abs.(y2)
 angle.(y2)
+
+x = rand(ComplexF64, size(z2))
+@bprofile for i in 1:10
+    for i in eachindex($x)
+        $x[i] = rand()
+    end
+    project!($x, $C)
+end
+# good, zero allocations!
+# 
+

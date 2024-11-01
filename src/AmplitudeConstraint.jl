@@ -151,17 +151,7 @@ function project!(x, feasset::ConstrainedByAmplitudeMasked)
     return x
 end
 
-update_amplitude(amp, x) = isnothing(amp) ? x : amp * _unit_amp(x)
 
-update_amplitude!(xp, amp, x) = isnothing(amp) ? x : amp * _unit_amp(x)
-
-@inline function _unit_amp(z)
-    return abs(z) ≈ 0 ? one(z) : z / abs(z)
-end
-
-@inline function _replace_amp(amp, z)
-    return abs(z) ≈ 0 ? zero(z) : z * (amp / abs(z))
-end
 
 size(feasset::ConstrainedByAmplitude) = size(feasset.amp)
 
