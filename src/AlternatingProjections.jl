@@ -152,6 +152,8 @@ ProjectionsMethod is class of iterative algorithms for solving feasibility probl
 """
 abstract type ProjectionsMethod <: IterativeAlgorithm end
 
+include("utils.jl")
+
 include("AP.jl")
 include("DR.jl")
 include("DRAP.jl")

@@ -92,7 +92,7 @@ end
 @testset "ScaledCopies" begin
     p = rand(3)
     sc = [[0, 2, 3], [0.1, 0.1, 1]]
-    plan = AlternatingProjections.plan_SC(sc,p)
+    plan = AlternatingProjections.plan_SC(sc, p)
     q = AlternatingProjections.getplanelement(plan)
     mul!(q, plan, p)
     @test q ./ p ≈ hcat(sc...)
@@ -112,22 +112,34 @@ end
 
     x = rand(ComplexF64, size(z)...)
     AlternatingProjections.backproject!(x, B)
-    @test abs.(x) == [
+    @test abs.(x) ≈ [
         0.0 0.1
         4.0 0.2
         0.0 0.0
     ]
 
-    p2 = rand(3, 4,2)
-    sc2 = reshape([collect(i:i+2) for i in 1.:3:10],(2,2))
-    plan = AlternatingProjections.plan_SC(sc2,p2, [1])
+    p2 = rand(3, 4, 2)
+    sc2 = reshape([collect(i:(i + 2)) for i in 1.0:3:10], (2, 2))
+    plan = AlternatingProjections.plan_SC(sc2, p2, [1])
     q = AlternatingProjections.getplanelement(plan)
     mul!(q, plan, p2)
-    sss =q ./ reshape(p2,(3,4,2,1,1))
-    @test (sss)[:,1,1,:,:] ≈ stack(sc2)
+    sss = q ./ reshape(p2, (3, 4, 2, 1, 1))
+    @test (sss)[:, 1, 1, :, :] ≈ stack(sc2)
 
 end
 
+@testset "LengthConstrained" begin
+    amp = [1 2; 3 4]
+    projdims = (2, 3)
+    addsize = (5, 4)
+
+    A = LCSet(amp, projdims, addsize)
+
+    z = getelement(A)
+    @test vec(Int.(sqrt.(sum(abs2, z; dims=projdims)))) == vec(amp)
+
+
+end
 @testset "solve" begin
 
     # Quick Gerchberg-Saxton
