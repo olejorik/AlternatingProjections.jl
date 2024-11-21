@@ -33,7 +33,16 @@ update_amplitude!(xp, amp, x) = isnothing(amp) ? x : amp * _unit_amp(x)
     return abs(z) ≈ 0 ? one(z) : z / abs(z)
 end
 
+
+
 @inline function _replace_amp(amp, z)
     return abs(z) ≈ 0 ? zero(z) : z * (amp / abs(z))
 end
 
+@inline function _replace_length!(z, amp, l)
+    return l ≈ 0 ? zero(z) : z * (amp / l)
+end
+
+@inline function _safe_invert!(z)
+    return z ≈ 0 ? zero(z) : 1 / z
+end

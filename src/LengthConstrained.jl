@@ -60,6 +60,7 @@ struct LCSet{T,N,K,M} <: AmplitudeConstrainedSet where {T<:Real,N,K,M}
     addsize::NTuple{K,Int}
     adddims::NTuple{N,Int}
     buffer::Array{Float64,M} # Todo use the same function as in getelement
+    newsize::NTuple{M,Int}
 end
 
 LCSet(
@@ -70,6 +71,7 @@ LCSet(
     addsize,
     sorted_setdiff(ntuple(i -> i, N + K), projdims),
     similar(amp, Float64, insert_ones(size(amp), projdims)),
+    insert_ones(size(amp), projdims),
 )
 
 # This was slow because of type instability of eachslice
@@ -115,7 +117,10 @@ end
 function project!(x::Array{T,N}, S::LCSet) where {T,N}
     # S.buffer .= sum!(abs2, x, dims = S.projdims)
     sum!(abs2, S.buffer, x)
-    return x .= x ./ S.buffer
+    # return x .= x ./ S.buffer .* reshape(S.amp, size(S.buffer))
+    S.buffer .= _safe_invert!.(sqrt.(S.buffer))
+    x .= x .* S.buffer .* reshape(S.amp, S.newsize)
+    return x
 end
 
 

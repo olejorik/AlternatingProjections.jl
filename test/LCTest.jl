@@ -17,6 +17,11 @@ z = getelement(A)
 @test vec(Int.(sqrt.(sum(abs2, z; dims=projdims)))) == vec(amp)
 
 
+x = ones(ComplexF64, size(z))
+project!(x, A)
+@test vec(Int.(sqrt.(sum(abs2, x; dims=projdims)))) == vec(amp)
+
+
 x = rand(ComplexF64, size(z))
 @btime project!($x, $A)
 
