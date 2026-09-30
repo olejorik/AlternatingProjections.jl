@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+title: "AlternatingProjections.jl"
+message: "If you use this software, please cite it using the metadata from this file."
+type: software
+authors:
+  - family-names: "Soloviev"
+    given-names: "Oleg"
+    email: "oleg.soloviev@gmail.com"
+    orcid: "https://orcid.org/0000-0003-3761-9192"
+    affiliation: "Flexible Optical B.V. (OKO Technologies)"
+abstract: "Types and functions for formulating and solving feasibility problems with alternating-projection methods (e.g. Gerchberg-Saxton-type algorithms) in Julia, keeping the code close to the mathematical description."
+keywords:
+  - "alternating projections"
+  - "feasibility problem"
+  - "Gerchberg-Saxton"
+  - "phase retrieval"
+  - "Julia"
+license: MIT
+repository-code: "https://github.com/olejorik/AlternatingProjections.jl"
+version: "0.1.0"

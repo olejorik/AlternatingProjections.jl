@@ -1,6 +1,6 @@
 name = "AlternatingProjections"
 uuid = "37589ef0-cc9c-11e9-2e35-d5d8b7f5a2df"
-authors = ["Oleg Soloviev <oleg.soloviev@gmail.com>"]
+authors = ["Oleg Soloviev <oleg.soloviev@gmail.com> and contributors"]
 version = "0.1.0"
 
 [deps]
