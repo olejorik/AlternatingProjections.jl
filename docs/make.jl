@@ -13,7 +13,7 @@ makedocs(sitename="AlternatingProjections.jl",
     format = Documenter.HTML(
         # Use clean URLs, unless built as a "local" build
         prettyurls = true,
-        canonical = "https://olejorik.github.io/AlternatingProjections.jl/stable/",
+        canonical = "https://juliaphase.github.io/AlternatingProjections.jl/stable/",
         # assets = ["assets/favicon.ico"],
         # highlights = ["yaml"],
     ),
@@ -32,5 +32,5 @@ makedocs(sitename="AlternatingProjections.jl",
 #     sitename="AlternatingProjections"
 # )
 
-deploydocs(repo = "github.com/olejorik/AlternatingProjections.jl.git",
+deploydocs(repo = "github.com/JuliaPhase/AlternatingProjections.jl.git",
     target = "build",)

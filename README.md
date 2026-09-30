@@ -45,10 +45,10 @@ To build documentation, cd to `docs` folder and run `julia make.jl`
 Oleg Soloviev, o.a.soloviev@tudelft.nl
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
-[docs-dev-url]: https://olejorik.github.io/AlternatingProjections.jl/dev/
+[docs-dev-url]: https://juliaphase.github.io/AlternatingProjections.jl/dev/
 
 [docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
-[docs-stable-url]: https://olejorik.github.io/AlternatingProjections.jl/latest/
+[docs-stable-url]: https://juliaphase.github.io/AlternatingProjections.jl/latest/
 
 ## Funding
 
